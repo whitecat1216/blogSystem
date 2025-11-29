@@ -1,0 +1,141 @@
+<div class="dynamic-screen">
+    
+    <!-- タイトル -->
+    <h2>{{ definition.title }}</h2>
+    
+    <!-- 検索フォーム -->
+    <div class="search-form" ng-if="!editMode">
+        <h4>検索条件</h4>
+        <form class="form-inline" ng-submit="searchData()">
+            <div class="form-group" ng-repeat="field in definition.searchFields" style="margin-right: 10px;">
+                <label>{{ field.label }}:</label>
+                
+                <!-- テキスト入力 -->
+                <input type="text" 
+                       ng-if="field.type === 'text'" 
+                       class="form-control" 
+                       ng-model="searchParams[field.key]"
+                       placeholder="{{ field.placeholder }}">
+                
+                <!-- 数値入力 -->
+                <input type="number" 
+                       ng-if="field.type === 'number'" 
+                       class="form-control" 
+                       ng-model="searchParams[field.key]">
+                
+                <!-- セレクトボックス -->
+                <select ng-if="field.type === 'select'" 
+                        class="form-control" 
+                        ng-model="searchParams[field.key]">
+                    <option value="">全て</option>
+                    <option ng-repeat="option in field.options" value="{{ option }}">{{ option }}</option>
+                </select>
+            </div>
+            
+            <button type="submit" class="btn btn-primary">検索</button>
+            <button type="button" class="btn btn-default" ng-click="resetSearch()">リセット</button>
+        </form>
+    </div>
+    
+    <!-- アクションボタン -->
+    <div class="action-buttons" ng-if="!editMode">
+        <button class="btn btn-success" ng-click="createNew()">
+            <span class="glyphicon glyphicon-plus"></span> 新規作成
+        </button>
+    </div>
+    
+    <!-- データ一覧テーブル -->
+    <div class="table-container" ng-if="!editMode">
+        <table class="table table-striped table-bordered">
+            <thead>
+                <tr>
+                    <th ng-repeat="column in definition.listColumns">{{ column.label }}</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="record in records">
+                    <td ng-repeat="column in definition.listColumns">{{ record[column.key] }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-info" ng-click="editRecord(record)">
+                            <span class="glyphicon glyphicon-edit"></span> 編集
+                        </button>
+                        <button class="btn btn-sm btn-danger" ng-click="deleteRecord(record)">
+                            <span class="glyphicon glyphicon-trash"></span> 削除
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <!-- ページネーション -->
+        <div class="pagination-container" ng-if="totalPages > 1">
+            <ul class="pagination">
+                <li ng-class="{disabled: currentPage === 0}">
+                    <a href="" ng-click="goToPage(currentPage - 1)">&laquo;</a>
+                </li>
+                <li ng-repeat="page in [] | range:totalPages" 
+                    ng-class="{active: page === currentPage}">
+                    <a href="" ng-click="goToPage(page)">{{ page + 1 }}</a>
+                </li>
+                <li ng-class="{disabled: currentPage === totalPages - 1}">
+                    <a href="" ng-click="goToPage(currentPage + 1)">&raquo;</a>
+                </li>
+            </ul>
+            <p class="text-center">
+                全 {{ totalRecords }} 件中 {{ currentPage * pageSize + 1 }} - 
+                {{ Math.min((currentPage + 1) * pageSize, totalRecords) }} 件を表示
+            </p>
+        </div>
+    </div>
+    
+    <!-- 編集フォーム -->
+    <div class="edit-form" ng-if="editMode">
+        <h4>{{ isNewRecord ? '新規作成' : '編集' }}</h4>
+        <form ng-submit="save()">
+            <div class="form-group" ng-repeat="field in definition.formFields">
+                <label>{{ field.label }} <span ng-if="field.required" class="text-danger">*</span></label>
+                
+                <!-- テキスト入力 -->
+                <input type="text" 
+                       ng-if="field.type === 'text'" 
+                       class="form-control" 
+                       ng-model="currentRecord[field.key]"
+                       ng-required="field.required">
+                
+                <!-- 数値入力 -->
+                <input type="number" 
+                       ng-if="field.type === 'number'" 
+                       class="form-control" 
+                       ng-model="currentRecord[field.key]"
+                       ng-required="field.required">
+                
+                <!-- テキストエリア -->
+                <textarea ng-if="field.type === 'textarea'" 
+                          class="form-control" 
+                          rows="5"
+                          ng-model="currentRecord[field.key]"
+                          ng-required="field.required"></textarea>
+                
+                <!-- セレクトボックス -->
+                <select ng-if="field.type === 'select'" 
+                        class="form-control" 
+                        ng-model="currentRecord[field.key]"
+                        ng-required="field.required">
+                    <option value="">選択してください</option>
+                    <option ng-repeat="option in field.options" value="{{ option }}">{{ option }}</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <span class="glyphicon glyphicon-save"></span> 保存
+                </button>
+                <button type="button" class="btn btn-default" ng-click="cancel()">
+                    <span class="glyphicon glyphicon-remove"></span> キャンセル
+                </button>
+            </div>
+        </form>
+    </div>
+    
+</div>

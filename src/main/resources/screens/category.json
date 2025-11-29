@@ -1,0 +1,51 @@
+{
+  "title": "カテゴリ管理",
+  "tableName": "blog_category",
+  "searchFields": [
+    {
+      "key": "name",
+      "label": "カテゴリ名",
+      "type": "text",
+      "placeholder": "カテゴリ名で検索"
+    }
+  ],
+  "listColumns": [
+    {
+      "key": "id",
+      "label": "ID",
+      "sortable": true
+    },
+    {
+      "key": "name",
+      "label": "カテゴリ名",
+      "sortable": true
+    },
+    {
+      "key": "description",
+      "label": "説明",
+      "sortable": false
+    },
+    {
+      "key": "created_at",
+      "label": "作成日",
+      "sortable": true
+    }
+  ],
+  "formFields": [
+    {
+      "key": "name",
+      "label": "カテゴリ名",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "description",
+      "label": "説明",
+      "type": "textarea",
+      "required": false
+    }
+  ],
+  "pagination": {
+    "pageSize": 10
+  }
+}

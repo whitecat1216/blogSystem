@@ -1,0 +1,52 @@
+spring:
+  application:
+    name: blog-system
+  
+  datasource:
+    # SQLite設定（開発用・コメントアウト）
+    # url: jdbc:sqlite:blog.db
+    # driver-class-name: org.sqlite.JDBC
+    
+    # PostgreSQL設定
+    # Postgresでは MySQL の useUnicode/characterEncoding は無効です。
+    # client_encoding は接続オプションまたは初期SQLで設定します。
+    url: jdbc:postgresql://localhost:5432/blogdb?options=-c%20client_encoding=UTF8
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # 正しい初期化SQL（PostgreSQL）：クライアントエンコーディングをUTF8に設定
+      connection-init-sql: "SET client_encoding TO 'UTF8'"
+  
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:db/schema.sql
+      data-locations: classpath:db/data.sql
+      continue-on-error: true
+      encoding: UTF-8
+  
+  security:
+    user:
+      name: admin
+      password: admin123
+
+server:
+  port: 8080
+  servlet:
+    context-path: /
+
+# Doma設定
+doma:
+  dialect: postgres
+  # SQLite使用時は以下に変更
+  # dialect: sqlite
+  
+# ログ設定
+logging:
+  level:
+    root: INFO
+    com.example.app: DEBUG
+    org.seasar.doma: DEBUG
+    org.springframework.jdbc: DEBUG
+    org.springframework.boot.sql.init: DEBUG

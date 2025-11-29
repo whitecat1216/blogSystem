@@ -1,0 +1,30 @@
+<div class="home-page">
+    <div class="jumbotron">
+        <h1>{{ message }}</h1>
+        <p>{{ description }}</p>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-4" ng-repeat="feature in features">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">{{ feature.title }}</h3>
+                </div>
+                <div class="panel-body">
+                    <p>{{ feature.description }}</p>
+                    <a href="{{ feature.link }}" class="btn btn-primary">開く</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info" role="alert">
+        <h4>システム情報</h4>
+        <ul>
+            <li>Spring Boot 3.2.x + Doma 2.54.x</li>
+            <li>AngularJS 1.8.2</li>
+            <li>PostgreSQL データベース</li>
+            <li>JSON定義による画面自動生成</li>
+        </ul>
+    </div>
+</div>

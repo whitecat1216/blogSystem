@@ -1,0 +1,75 @@
+{
+  "title": "ブログ記事管理",
+  "tableName": "blog_post",
+  "searchFields": [
+    {
+      "key": "title",
+      "label": "タイトル",
+      "type": "text",
+      "placeholder": "タイトルで検索"
+    },
+    {
+      "key": "author_id",
+      "label": "作成者ID",
+      "type": "number"
+    },
+    {
+      "key": "status",
+      "label": "公開状態",
+      "type": "select",
+      "options": ["draft", "published"]
+    }
+  ],
+  "listColumns": [
+    {
+      "key": "id",
+      "label": "ID",
+      "sortable": true
+    },
+    {
+      "key": "title",
+      "label": "タイトル",
+      "sortable": true
+    },
+    {
+      "key": "status",
+      "label": "公開状態",
+      "sortable": true
+    },
+    {
+      "key": "created_at",
+      "label": "作成日",
+      "sortable": true
+    }
+  ],
+  "formFields": [
+    {
+      "key": "title",
+      "label": "タイトル",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "content",
+      "label": "本文",
+      "type": "textarea",
+      "required": true
+    },
+    {
+      "key": "author_id",
+      "label": "作成者ID",
+      "type": "number",
+      "required": false
+    },
+    {
+      "key": "status",
+      "label": "公開状態",
+      "type": "select",
+      "options": ["draft", "published"],
+      "required": true
+    }
+  ],
+  "pagination": {
+    "pageSize": 10
+  }
+}

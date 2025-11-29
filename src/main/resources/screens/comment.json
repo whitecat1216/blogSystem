@@ -1,0 +1,67 @@
+{
+  "title": "コメント管理",
+  "tableName": "blog_comment",
+  "searchFields": [
+    {
+      "key": "author",
+      "label": "投稿者",
+      "type": "text",
+      "placeholder": "投稿者名で検索"
+    },
+    {
+      "key": "post_id",
+      "label": "記事ID",
+      "type": "number"
+    }
+  ],
+  "listColumns": [
+    {
+      "key": "id",
+      "label": "ID",
+      "sortable": true
+    },
+    {
+      "key": "post_id",
+      "label": "記事ID",
+      "sortable": true
+    },
+    {
+      "key": "author",
+      "label": "投稿者",
+      "sortable": true
+    },
+    {
+      "key": "comment_text",
+      "label": "コメント",
+      "sortable": false
+    },
+    {
+      "key": "created_at",
+      "label": "投稿日",
+      "sortable": true
+    }
+  ],
+  "formFields": [
+    {
+      "key": "post_id",
+      "label": "記事ID",
+      "type": "number",
+      "required": true
+    },
+    {
+      "key": "author",
+      "label": "投稿者",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "comment_text",
+      "label": "コメント",
+      "type": "textarea",
+      "required": true
+    }
+  ],
+  "pagination": {
+    "pageSize": 20
+  }
+}

@@ -1,0 +1,139 @@
+blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams', 
+    function($scope, $http, $routeParams) {
+        
+    $scope.screenName = $routeParams.screenName;
+    $scope.definition = null;
+    $scope.records = [];
+    $scope.searchParams = {};
+    $scope.currentPage = 0;
+    $scope.totalPages = 0;
+    $scope.totalRecords = 0;
+    $scope.pageSize = 10;
+    
+    $scope.editMode = false;
+    $scope.currentRecord = {};
+    $scope.isNewRecord = false;
+    
+    // 画面定義の読み込み
+    $scope.loadDefinition = function() {
+        $http.get('/api/screen/' + $scope.screenName + '/definition')
+            .then(function(response) {
+                $scope.definition = response.data;
+                $scope.pageSize = $scope.definition.pagination.pageSize || 10;
+                $scope.searchData();
+            })
+            .catch(function(error) {
+                console.error('Definition load error:', error);
+                alert('画面定義の読み込みに失敗しました');
+            });
+    };
+    
+    // データ検索
+    $scope.searchData = function() {
+        var params = {
+            page: $scope.currentPage,
+            pageSize: $scope.pageSize
+        };
+        
+        // 検索パラメータを追加
+        for (var key in $scope.searchParams) {
+            if ($scope.searchParams[key]) {
+                params[key] = $scope.searchParams[key];
+            }
+        }
+        
+        $http.get('/api/screen/' + $scope.screenName + '/data', { params: params })
+            .then(function(response) {
+                $scope.records = response.data.records;
+                $scope.totalRecords = response.data.total;
+                $scope.totalPages = Math.ceil($scope.totalRecords / $scope.pageSize);
+            })
+            .catch(function(error) {
+                console.error('Search error:', error);
+                alert('データの検索に失敗しました');
+            });
+    };
+    
+    // 検索条件リセット
+    $scope.resetSearch = function() {
+        $scope.searchParams = {};
+        $scope.currentPage = 0;
+        $scope.searchData();
+    };
+    
+    // ページ変更
+    $scope.goToPage = function(page) {
+        if (page >= 0 && page < $scope.totalPages) {
+            $scope.currentPage = page;
+            $scope.searchData();
+        }
+    };
+    
+    // 新規作成モード
+    $scope.createNew = function() {
+        $scope.currentRecord = {};
+        $scope.isNewRecord = true;
+        $scope.editMode = true;
+    };
+    
+    // 編集モード
+    $scope.editRecord = function(record) {
+        $scope.currentRecord = angular.copy(record);
+        $scope.isNewRecord = false;
+        $scope.editMode = true;
+    };
+    
+    // 保存
+    $scope.save = function() {
+        if ($scope.isNewRecord) {
+            // 新規作成
+            $http.post('/api/screen/' + $scope.screenName + '/data', $scope.currentRecord)
+                .then(function() {
+                    alert('保存しました');
+                    $scope.editMode = false;
+                    $scope.searchData();
+                })
+                .catch(function(error) {
+                    console.error('Create error:', error);
+                    alert('保存に失敗しました');
+                });
+        } else {
+            // 更新
+            $http.put('/api/screen/' + $scope.screenName + '/data/' + $scope.currentRecord.id, 
+                     $scope.currentRecord)
+                .then(function() {
+                    alert('更新しました');
+                    $scope.editMode = false;
+                    $scope.searchData();
+                })
+                .catch(function(error) {
+                    console.error('Update error:', error);
+                    alert('更新に失敗しました');
+                });
+        }
+    };
+    
+    // 削除
+    $scope.deleteRecord = function(record) {
+        if (confirm('本当に削除しますか?')) {
+            $http.delete('/api/screen/' + $scope.screenName + '/data/' + record.id)
+                .then(function() {
+                    alert('削除しました');
+                    $scope.searchData();
+                })
+                .catch(function(error) {
+                    console.error('Delete error:', error);
+                    alert('削除に失敗しました');
+                });
+        }
+    };
+    
+    // キャンセル
+    $scope.cancel = function() {
+        $scope.editMode = false;
+        $scope.currentRecord = {};
+    };
+    
+    // 初期化
+    $scope.loadDefinition();
+}]);
