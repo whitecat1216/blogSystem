@@ -42,4 +42,9 @@ public class TagController {
         resp.put("name", name);
         return ResponseEntity.ok(resp);
     }
+
+    @PostMapping("/ensure")
+    public ResponseEntity<Map<String,Object>> ensureTag(@RequestBody Map<String,Object> body) {
+        return create(body); // 既存のcreateメソッドを再利用
+    }
 }

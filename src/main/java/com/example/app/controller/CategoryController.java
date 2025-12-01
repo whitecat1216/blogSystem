@@ -25,7 +25,7 @@ public class CategoryController {
     /**
      * カテゴリを取得または作成する
      * @param request { "name": "カテゴリ名" }
-     * @return { "id": 123 }
+     * @return { "id": 123, "name": "カテゴリ名" }
      */
     @PostMapping("/ensure")
     public ResponseEntity<Map<String,Object>> ensureCategory(@RequestBody Map<String,String> request) {
@@ -39,6 +39,7 @@ public class CategoryController {
         }
         Map<String,Object> result = new HashMap<>();
         result.put("id", id);
+        result.put("name", name);
         return ResponseEntity.ok(result);
     }
 }

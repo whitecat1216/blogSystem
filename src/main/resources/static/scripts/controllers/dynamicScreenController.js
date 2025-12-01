@@ -131,7 +131,10 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
                 })
                 .catch(function(error) {
                     console.error('Update error:', error);
-                    alert('更新に失敗しました');
+                    console.error('Error details:', error.data);
+                    console.error('Status:', error.status);
+                    console.error('Record being updated:', $scope.currentRecord);
+                    alert('更新に失敗しました: ' + (error.data?.message || error.statusText || 'Unknown error'));
                 });
         }
     };
@@ -203,10 +206,19 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
             });
         };
 
-        // add new option for multiselect (tags)
+        // add new option for multiselect (tags/categories)
         $scope.addNewOption = function(field, newName) {
             if (!newName || !field.allowCreate) return;
-            $http.post('/api/tag', {name: newName}).then(function(resp){
+            
+            // フィールドのsourceからエンドポイントを判定
+            var endpoint = '/api/tag/ensure'; // デフォルトはタグ
+            if (field.source && field.source.includes('category')) {
+                endpoint = '/api/category/ensure';
+            } else if (field.source && field.source.includes('tag')) {
+                endpoint = '/api/tag/ensure';
+            }
+            
+            $http.post(endpoint, {name: newName}).then(function(resp){
                 if (!field._options) field._options = [];
                 field._options.push(resp.data);
                 if (!$scope.currentRecord[field.key]) {
@@ -214,6 +226,9 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
                 }
                 $scope.currentRecord[field.key].push(resp.data.id);
                 field._newName = '';
+            }).catch(function(error) {
+                console.error('Failed to create new option:', error);
+                alert('追加に失敗しました: ' + (error.data?.message || error.statusText));
             });
         };
 
