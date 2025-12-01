@@ -30,6 +30,16 @@ CREATE TABLE IF NOT EXISTS blog_category (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+-- ユーザーテーブル（認証用）
+CREATE TABLE IF NOT EXISTS blog_user (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+    enabled BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- タグテーブル
 CREATE TABLE IF NOT EXISTS blog_tag (
     id SERIAL PRIMARY KEY,

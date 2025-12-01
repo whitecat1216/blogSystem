@@ -57,8 +57,14 @@
                     <li><a href="#!/screen/category">カテゴリ管理</a></li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
-                    <li ng-if="!isAdmin && !username || username==='anonymous'"><a href="/login"><span class="glyphicon glyphicon-log-in"></span> ログイン</a></li>
-                    <li ng-if="username && username!=='anonymous'"><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> ログアウト ({{username}})</a></li>
+                    <li ng-if="!authenticated"><a href="/register.html"><span class="glyphicon glyphicon-user"></span> 新規登録</a></li>
+                    <li ng-if="!authenticated"><a href="/login.html"><span class="glyphicon glyphicon-log-in"></span> ログイン</a></li>
+                    <li ng-if="authenticated" class="navbar-text">
+                        <span class="glyphicon glyphicon-user"></span> {{ username }} 
+                        <span ng-if="isAdmin" class="label label-danger">管理者</span>
+                        <span ng-if="!isAdmin" class="label label-info">一般</span>
+                    </li>
+                    <li ng-if="authenticated"><a href="javascript:void(0)" ng-click="logout()"><span class="glyphicon glyphicon-log-out"></span> ログアウト</a></li>
                 </ul>
             </div>
         </div>

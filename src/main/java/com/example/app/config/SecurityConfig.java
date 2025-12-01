@@ -1,17 +1,22 @@
 package com.example.app.config;
 
+import com.example.app.service.UserService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.NoOpPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.Map;
 
 @Configuration
 @EnableWebSecurity
@@ -26,15 +31,20 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/screen/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/tag/list").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/upload").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/user/register").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/tag").hasRole("ADMIN")
-                    .requestMatchers("/app/**", "/scripts/**", "/views/**", "/").permitAll()
+                    .requestMatchers("/login.html", "/register.html", "/app/**", "/scripts/**", "/views/**", "/", "/static/**").permitAll()
                     .anyRequest().permitAll()
                 )
-            .httpBasic(basic -> {})
+            // Basic認証は開発用。常時admin状態を避けるためフォームログインのみ利用。
+            .httpBasic(basic -> basic.disable())
             .formLogin(form -> form
+                .loginPage("/login.html")
+                .loginProcessingUrl("/login")
+                .defaultSuccessUrl("/", true)
                 .permitAll()
             )
             .logout(logout -> logout
@@ -50,20 +60,29 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // 平文パスワード（本番環境では非推奨）
+        return NoOpPasswordEncoder.getInstance();
     }
 
-    // 管理者/一般ユーザのインメモリユーザを設定
+    // データベースからユーザー情報を取得する UserDetailsService
+    // @Lazy を使用して循環依存を回避
     @Bean
-    public UserDetailsService userDetailsService(PasswordEncoder encoder) {
-        var admin = User.withUsername("admin")
-                .password(encoder.encode("admin123"))
-                .roles("ADMIN")
-                .build();
-        var user = User.withUsername("user")
-                .password(encoder.encode("user123"))
-                .roles("USER")
-                .build();
-        return new InMemoryUserDetailsManager(admin, user);
+    public UserDetailsService userDetailsService(@Lazy UserService userService) {
+        return username -> {
+            Map<String, Object> user = userService.findByUsername(username);
+            if (user == null) {
+                throw new UsernameNotFoundException("User not found: " + username);
+            }
+            
+            String password = (String) user.get("password");
+            String role = (String) user.get("role");
+            Boolean enabled = (Boolean) user.get("enabled");
+            
+            return User.withUsername(username)
+                    .password(password)
+                    .roles(role)
+                    .disabled(!enabled)
+                    .build();
+        };
     }
 }
