@@ -157,14 +157,20 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
         $scope.currentRecord = {};
     };
     
-    // コメント数を取得（blog記事用）
+    // コメント数を取得(blog記事用)
     function loadCommentCounts() {
         $scope.records.forEach(function(record) {
             $http.get('/api/screen/comment/data', {
-                params: { post_id: record.id }
+                params: { 
+                    post_id: record.id,
+                    page: 0,
+                    pageSize: 999
+                }
             }).then(function(resp) {
-                record._commentCount = resp.data.records ? resp.data.records.length : 0;
-            }).catch(function() {
+                console.log('Comments for post', record.id, ':', resp.data);
+                record._commentCount = resp.data.total || 0;
+            }).catch(function(err) {
+                console.error('Failed to load comments for post', record.id, err);
                 record._commentCount = 0;
             });
         });

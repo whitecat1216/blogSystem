@@ -53,8 +53,15 @@ public class DynamicScreenService {
             // 検索条件の追加
             for (Map.Entry<String, Object> entry : searchParams.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().toString().isEmpty()) {
-                    sql.append(" AND ").append(entry.getKey())
-                       .append(" LIKE '%").append(entry.getValue()).append("%'");
+                    // 数値型の場合は=、文字列型の場合はLIKEを使用
+                    Object value = entry.getValue();
+                    if (isNumeric(value.toString())) {
+                        sql.append(" AND ").append(entry.getKey())
+                           .append(" = ").append(value);
+                    } else {
+                        sql.append(" AND ").append(entry.getKey())
+                           .append(" LIKE '%").append(value).append("%'");
+                    }
                 }
             }
             
@@ -76,8 +83,15 @@ public class DynamicScreenService {
             
             for (Map.Entry<String, Object> entry : searchParams.entrySet()) {
                 if (entry.getValue() != null && !entry.getValue().toString().isEmpty()) {
-                    sql.append(" AND ").append(entry.getKey())
-                       .append(" LIKE '%").append(entry.getValue()).append("%'");
+                    // 数値型の場合は=、文字列型の場合はLIKEを使用
+                    Object value = entry.getValue();
+                    if (isNumeric(value.toString())) {
+                        sql.append(" AND ").append(entry.getKey())
+                           .append(" = ").append(value);
+                    } else {
+                        sql.append(" AND ").append(entry.getKey())
+                           .append(" LIKE '%").append(value).append("%'");
+                    }
                 }
             }
             
@@ -87,6 +101,16 @@ public class DynamicScreenService {
             System.err.println("Error counting records in table " + tableName + ": " + e.getMessage());
             e.printStackTrace();
             return 0;
+        }
+    }
+
+    // 数値判定用ヘルパーメソッド
+    private boolean isNumeric(String str) {
+        try {
+            Double.parseDouble(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
         }
     }
 
