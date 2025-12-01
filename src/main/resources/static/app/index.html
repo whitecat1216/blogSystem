@@ -31,7 +31,8 @@
                 <ul class="nav navbar-nav">
                     <li><a href="#!/">ホーム</a></li>
                     <li><a href="#!/screen/blog">記事管理</a></li>
-                    <li><a href="#!/screen/comment">コメント管理</a></li>
+                    <!-- 管理者のみコメント管理を表示 -->
+                    <li ng-if="isAdmin"><a href="#!/screen/comment">コメント管理</a></li>
                     <!-- 管理者のみカテゴリ管理を表示 -->
                     <li ng-if="isAdmin"><a href="#!/screen/category">カテゴリ管理</a></li>
                 </ul>

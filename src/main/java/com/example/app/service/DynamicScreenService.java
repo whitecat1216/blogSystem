@@ -158,4 +158,15 @@ public class DynamicScreenService {
             jdbcTemplate.update("UPDATE blog_post SET tags = NULL WHERE id = ?", postId);
         }
     }
+
+    // --- Category relation helpers (blog_post specific) ---
+    public void updatePostCategories(int postId, List<Integer> categoryIds) {
+        // remove existing
+        jdbcTemplate.update("DELETE FROM post_category WHERE post_id = ?", postId);
+        if (categoryIds != null && !categoryIds.isEmpty()) {
+            for (Integer categoryId : categoryIds) {
+                jdbcTemplate.update("INSERT INTO post_category (post_id, category_id) VALUES (?, ?)", postId, categoryId);
+            }
+        }
+    }
 }

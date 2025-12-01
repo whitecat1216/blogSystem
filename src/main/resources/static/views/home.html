@@ -1,30 +1,81 @@
 <div class="home-page">
     <div class="jumbotron">
         <h1>{{ message }}</h1>
-        <p>{{ description }}</p>
+        <p>JSON定義ファイルで画面を自動生成するブログシステムです。</p>
     </div>
     
-    <div class="row">
-        <div class="col-md-4" ng-repeat="feature in features">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">{{ feature.title }}</h3>
-                </div>
-                <div class="panel-body">
-                    <p>{{ feature.description }}</p>
-                    <a href="{{ feature.link }}" class="btn btn-primary">開く</a>
+    <div ng-if="loading" class="text-center">
+        <p><span class="glyphicon glyphicon-refresh spinning"></span> 読み込み中...</p>
+    </div>
+    
+    <div ng-if="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+    
+    <!-- 最新記事セクション -->
+    <div ng-if="!loading && !error && definition" ng-repeat="section in definition.sections">
+        <div ng-if="section.type === 'recent-posts'" class="recent-posts-section">
+            <h2>
+                <span class="glyphicon glyphicon-file"></span> {{ section.heading }}
+            </h2>
+            <hr>
+            
+            <div ng-if="recentPosts.length === 0" class="alert alert-info">
+                まだ記事が投稿されていません。
+            </div>
+            
+            <div class="row">
+                <div class="col-md-12" ng-repeat="post in recentPosts">
+                    <div class="panel panel-default" style="margin-bottom: 20px;">
+                        <div class="panel-body">
+                            <div class="row">
+                                <!-- サムネイル画像 -->
+                                <div class="col-md-3" ng-if="post[section.displayFields.imageField]">
+                                    <img ng-src="{{ post[section.displayFields.imageField] }}" 
+                                         alt="{{ post[section.displayFields.titleField] }}"
+                                         class="img-responsive img-thumbnail"
+                                         style="max-height: 150px; width: 100%; object-fit: cover;">
+                                </div>
+                                
+                                <!-- 記事情報 -->
+                                <div ng-class="post[section.displayFields.imageField] ? 'col-md-9' : 'col-md-12'">
+                                    <h3 style="margin-top: 0;">
+                                        <a href="{{ getPostLink(post) }}">{{ post[section.displayFields.titleField] }}</a>
+                                    </h3>
+                                    
+                                    <p class="text-muted" style="margin-bottom: 10px;">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                        {{ post[section.displayFields.dateField] | date:'yyyy年MM月dd日' }}
+                                        
+                                        <span ng-if="post[section.displayFields.tagsField]" style="margin-left: 15px;">
+                                            <span class="glyphicon glyphicon-tags"></span>
+                                            <span class="label label-info" 
+                                                  ng-repeat="tag in post[section.displayFields.tagsField].split(',')" 
+                                                  style="margin-right: 5px;">
+                                                {{ tag }}
+                                            </span>
+                                        </span>
+                                    </p>
+                                    
+                                    <p ng-if="post[section.displayFields.excerptField]">
+                                        {{ post[section.displayFields.excerptField] }}
+                                    </p>
+                                    
+                                    <a href="{{ getPostLink(post) }}" class="btn btn-primary btn-sm">
+                                        続きを読む <span class="glyphicon glyphicon-chevron-right"></span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <div class="text-center" style="margin-top: 20px;">
+                <a href="#!/screen/blog" class="btn btn-default">
+                    すべての記事を見る <span class="glyphicon glyphicon-arrow-right"></span>
+                </a>
+            </div>
         </div>
-    </div>
-    
-    <div class="alert alert-info" role="alert">
-        <h4>システム情報</h4>
-        <ul>
-            <li>Spring Boot 3.2.x + Doma 2.54.x</li>
-            <li>AngularJS 1.8.2</li>
-            <li>PostgreSQL データベース</li>
-            <li>JSON定義による画面自動生成</li>
-        </ul>
     </div>
 </div>

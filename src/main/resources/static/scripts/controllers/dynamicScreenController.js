@@ -63,6 +63,11 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
                 $scope.records = response.data.records;
                 $scope.totalRecords = response.data.total;
                 $scope.totalPages = Math.ceil($scope.totalRecords / $scope.pageSize);
+                
+                // blog記事の場合、コメント数を取得
+                if ($scope.screenName === 'blog' && $scope.records.length > 0) {
+                    loadCommentCounts();
+                }
             })
             .catch(function(error) {
                 console.error('Search error:', error);
@@ -151,6 +156,19 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
         $scope.editMode = false;
         $scope.currentRecord = {};
     };
+    
+    // コメント数を取得（blog記事用）
+    function loadCommentCounts() {
+        $scope.records.forEach(function(record) {
+            $http.get('/api/screen/comment/data', {
+                params: { post_id: record.id }
+            }).then(function(resp) {
+                record._commentCount = resp.data.records ? resp.data.records.length : 0;
+            }).catch(function() {
+                record._commentCount = 0;
+            });
+        });
+    }
     
     // 初期化
     $scope.loadDefinition();

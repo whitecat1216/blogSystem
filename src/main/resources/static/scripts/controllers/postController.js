@@ -9,6 +9,8 @@ blogApp.controller('PostController', ['$scope', '$http', '$routeParams', '$locat
     $scope.username = null;
     $scope.isAdmin = false;
     $scope.commentSubmitting = false;
+    $scope.commentSuccess = false;
+    $scope.commentError = null;
 
     var id = $routeParams.id;
     
@@ -72,15 +74,33 @@ blogApp.controller('PostController', ['$scope', '$http', '$routeParams', '$locat
         
         $http.post('/api/screen/comment/data', commentData)
             .then(function(){
-                alert('コメントを投稿しました');
                 // コメント欄をクリア
                 $scope.newComment = { author: $scope.username };
                 // コメント一覧を再読み込み
                 loadComments();
+                
+                // 成功メッセージを表示
+                $scope.commentSuccess = true;
+                setTimeout(function(){
+                    $scope.commentSuccess = false;
+                    $scope.$apply();
+                }, 3000);
+                
+                // コメントセクションの先頭にスクロール
+                setTimeout(function(){
+                    var commentsElement = document.getElementById('comments');
+                    if (commentsElement) {
+                        commentsElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                }, 300);
             })
             .catch(function(err){
                 console.error('Failed to submit comment:', err);
-                alert('コメントの投稿に失敗しました');
+                $scope.commentError = 'コメントの投稿に失敗しました。もう一度お試しください。';
+                setTimeout(function(){
+                    $scope.commentError = null;
+                    $scope.$apply();
+                }, 5000);
             })
             .finally(function(){
                 $scope.commentSubmitting = false;

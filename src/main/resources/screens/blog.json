@@ -76,6 +76,14 @@
       "uploadEndpoint": "/api/upload"
     },
     {
+      "key": "categoryIds",
+      "label": "カテゴリ",
+      "type": "multiselect",
+      "source": "/api/category/list",
+      "allowCreate": true,
+      "required": false
+    },
+    {
       "key": "tagIds",
       "label": "タグ",
       "type": "multiselect",

@@ -59,6 +59,10 @@
                         <div class="card-date" ng-if="definition.listLayout.dateField">{{ record[definition.listLayout.dateField] | date:'yyyy/MM/dd' }}</div>
                         <p class="card-excerpt" ng-if="definition.listLayout.excerptField">{{ record[definition.listLayout.excerptField] }}</p>
                         <div class="card-tags" ng-if="definition.listLayout.tagsField && record[definition.listLayout.tagsField]">{{ record[definition.listLayout.tagsField] }}</div>
+                        <div class="card-comments" ng-if="record._commentCount !== undefined" style="margin-top: 8px; color: #5bc0de;">
+                            <span class="glyphicon glyphicon-comment"></span> 
+                            <span style="font-weight: 600;">{{ record._commentCount }}</span> コメント
+                        </div>
                         <div class="card-actions">
                             <button class="btn btn-sm btn-info" ng-if="isAdmin" ng-click="editRecord(record)">
                                 <span class="glyphicon glyphicon-edit"></span> 編集

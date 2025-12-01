@@ -19,7 +19,7 @@
         <p class="lead" style="background: #f9f9f9; padding: 15px; border-left: 4px solid #5bc0de;">{{ post[dl.excerptField] }}</p>
       </div>
       <div class="post-content" ng-if="section==='content'">
-        <div ng-bind-html="post[dl.contentField]" style="line-height: 1.8;"></div>
+        <div ng-bind-html="post[dl.contentField] | trustAsHtml" style="line-height: 1.8;"></div>
       </div>
     </div>
     
@@ -34,17 +34,22 @@
     </div>
     
     <!-- Comments Section -->
-    <section class="comments-section" ng-if="dl.comments && dl.comments.enabled" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
-      <h3>コメント ({{ comments.length }})</h3>
+    <section class="comments-section" id="comments" ng-if="dl.comments && dl.comments.enabled" style="margin-top: 40px; padding-top: 30px; border-top: 2px solid #ddd;">
+      <h3 style="margin-bottom: 25px;">
+        <span class="glyphicon glyphicon-comment" style="margin-right: 8px;"></span>
+        コメント <span class="badge" style="background-color: #5bc0de;">{{ comments.length }}</span>
+      </h3>
       
       <!-- Comment List -->
       <div class="comment-list" ng-if="comments.length > 0" style="margin-bottom: 30px;">
-        <div class="comment-item" ng-repeat="comment in comments" style="padding: 15px; margin-bottom: 15px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #5bc0de;">
-          <div class="comment-header" style="margin-bottom: 8px;">
-            <strong class="comment-author" style="color: #333; margin-right: 10px;">{{ comment[dl.comments.authorField] }}</strong>
-            <span class="comment-date text-muted" style="font-size: 0.9em;">{{ comment[dl.comments.dateField] | date:'yyyy/MM/dd HH:mm' }}</span>
+        <div class="comment-item" ng-repeat="comment in comments" style="padding: 20px; margin-bottom: 20px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+          <div class="comment-header" style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0;">
+            <span class="glyphicon glyphicon-user" style="color: #5bc0de; margin-right: 5px;"></span>
+            <strong class="comment-author" style="color: #333; margin-right: 15px; font-size: 1.05em;">{{ comment[dl.comments.authorField] }}</strong>
+            <span class="glyphicon glyphicon-time" style="color: #999; font-size: 0.85em; margin-right: 5px;"></span>
+            <span class="comment-date text-muted" style="font-size: 0.9em;">{{ comment[dl.comments.dateField] | date:'yyyy年MM月dd日 HH:mm' }}</span>
           </div>
-          <div class="comment-body" style="color: #555; white-space: pre-wrap;">
+          <div class="comment-body" style="color: #555; white-space: pre-wrap; line-height: 1.6; font-size: 0.95em;">
             {{ comment[dl.comments.textField] }}
           </div>
         </div>
@@ -55,29 +60,49 @@
       </div>
       
       <!-- Comment Form -->
-      <div class="comment-form" style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 4px;">
-        <h4 style="margin-top: 0;">コメントを投稿する</h4>
-        <div ng-if="!authenticated" class="alert alert-info">
-          コメントを投稿するには<a href="/login.html">ログイン</a>が必要です。
+      <div class="comment-form" id="comment-form" style="margin-top: 30px; padding: 25px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <h4 style="margin-top: 0; margin-bottom: 20px;">
+          <span class="glyphicon glyphicon-pencil" style="margin-right: 8px;"></span>
+          コメントを投稿する
+        </h4>
+        
+        <!-- Success Message -->
+        <div ng-if="commentSuccess" class="alert alert-success" style="margin-bottom: 15px;">
+          <span class="glyphicon glyphicon-ok-circle" style="margin-right: 5px;"></span>
+          コメントを投稿しました！
         </div>
-        <form ng-if="authenticated" ng-submit="submitComment()">
+        
+        <!-- Error Message -->
+        <div ng-if="commentError" class="alert alert-danger" style="margin-bottom: 15px;">
+          <span class="glyphicon glyphicon-exclamation-sign" style="margin-right: 5px;"></span>
+          {{ commentError }}
+        </div>
+        
+        <div ng-if="!authenticated" class="alert alert-info" style="margin-bottom: 0;">
+          <span class="glyphicon glyphicon-info-sign" style="margin-right: 5px;"></span>
+          コメントを投稿するには<a href="/login.html" style="font-weight: bold;">ログイン</a>が必要です。
+        </div>
+        <form ng-if="authenticated" ng-submit="submitComment()" name="commentForm">
           <div class="form-group" ng-repeat="field in dl.comments.formFields">
-            <label>{{ field.label }} <span class="text-danger" ng-if="field.required">*</span></label>
+            <label style="font-weight: 600;">{{ field.label }} <span class="text-danger" ng-if="field.required">*</span></label>
             <input type="text" 
                    ng-if="field.type === 'text'" 
                    class="form-control" 
                    ng-model="newComment[field.key]"
                    ng-required="field.required"
-                   ng-readonly="field.autoFill === 'username'">
+                   ng-readonly="field.autoFill === 'username'"
+                   style="background-color: {{ field.autoFill === 'username' ? '#e9ecef' : '#fff' }};">
             <textarea ng-if="field.type === 'textarea'" 
                       class="form-control" 
                       rows="{{ field.rows || 4 }}"
                       ng-model="newComment[field.key]"
                       ng-required="field.required"
-                      placeholder="{{ field.placeholder || 'コメントを入力してください' }}"></textarea>
+                      placeholder="{{ field.placeholder || 'コメントを入力してください' }}"
+                      style="resize: vertical;"></textarea>
           </div>
-          <button type="submit" class="btn btn-primary" ng-disabled="commentSubmitting">
-            <span class="glyphicon glyphicon-comment"></span> {{ commentSubmitting ? '送信中...' : 'コメントを投稿' }}
+          <button type="submit" class="btn btn-primary btn-lg" ng-disabled="commentSubmitting || commentForm.$invalid">
+            <span class="glyphicon glyphicon-send" style="margin-right: 5px;"></span> 
+            {{ commentSubmitting ? '送信中...' : 'コメントを投稿' }}
           </button>
         </form>
       </div>

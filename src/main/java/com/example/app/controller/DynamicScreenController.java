@@ -104,6 +104,17 @@ public class DynamicScreenController {
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
             // sanitize richtext fields (e.g., content)
             sanitizeRichText(definition, data);
+            // categoryIds (multiselect) handling for blog_post
+            List<Integer> categoryIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("categoryIds")) {
+                Object raw = data.get("categoryIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        categoryIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("categoryIds"); // not a direct column
+            }
             // tagIds (multiselect) handling for blog_post
             List<Integer> tagIds = null;
             if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
@@ -116,6 +127,9 @@ public class DynamicScreenController {
                 data.remove("tagIds"); // not a direct column
             }
             int newId = screenService.createRecordReturnId(definition.getTableName(), data);
+            if (categoryIds != null) {
+                screenService.updatePostCategories(newId, categoryIds);
+            }
             if (tagIds != null) {
                 screenService.updatePostTags(newId, tagIds);
             }
@@ -135,6 +149,17 @@ public class DynamicScreenController {
         try {
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
             sanitizeRichText(definition, data);
+            // categoryIds (multiselect) handling for blog_post
+            List<Integer> categoryIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("categoryIds")) {
+                Object raw = data.get("categoryIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        categoryIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("categoryIds");
+            }
             List<Integer> tagIds = null;
             if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
                 Object raw = data.get("tagIds");
@@ -146,6 +171,9 @@ public class DynamicScreenController {
                 data.remove("tagIds");
             }
             screenService.updateRecord(definition.getTableName(), id, data);
+            if (categoryIds != null) {
+                screenService.updatePostCategories(id, categoryIds);
+            }
             if (tagIds != null) {
                 screenService.updatePostTags(id, tagIds);
             }

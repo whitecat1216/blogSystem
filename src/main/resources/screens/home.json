@@ -1,0 +1,22 @@
+{
+  "title": "ホーム",
+  "sections": [
+    {
+      "type": "recent-posts",
+      "heading": "最新記事",
+      "sourceTable": "blog_post",
+      "limit": 5,
+      "orderBy": "created_at",
+      "orderDirection": "DESC",
+      "whereClause": "status = 'published'",
+      "displayFields": {
+        "titleField": "title",
+        "dateField": "created_at",
+        "excerptField": "excerpt",
+        "imageField": "hero_image",
+        "tagsField": "tags"
+      },
+      "linkPattern": "#!/screen/blog/detail/{{id}}"
+    }
+  ]
+}

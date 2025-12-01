@@ -14,6 +14,7 @@ public class ScreenDefinition {
     private Pagination pagination;
     private ListLayout listLayout;
     private DetailLayout detailLayout;
+    private List<Section> sections; // for home page
 
     @Data
     public static class SearchField {
@@ -85,5 +86,27 @@ public class ScreenDefinition {
         private String dateField;
         private Boolean allowAnonymous;
         private List<FormField> formFields;
+    }
+    
+    @Data
+    public static class Section {
+        private String type;
+        private String heading;
+        private String sourceTable;
+        private Integer limit;
+        private String orderBy;
+        private String orderDirection;
+        private String whereClause;
+        private DisplayFields displayFields;
+        private String linkPattern;
+    }
+    
+    @Data
+    public static class DisplayFields {
+        private String titleField;
+        private String dateField;
+        private String excerptField;
+        private String imageField;
+        private String tagsField;
     }
 }
