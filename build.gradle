@@ -44,6 +44,8 @@ dependencies {
     // Jackson for JSON
     implementation 'com.fasterxml.jackson.core:jackson-databind'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml'
+    // HTML Sanitizer
+    implementation 'org.jsoup:jsoup:1.17.2'
     
     // Lombok
     compileOnly 'org.projectlombok:lombok'

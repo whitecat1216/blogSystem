@@ -52,13 +52,35 @@
     {
       "key": "content",
       "label": "本文",
-      "type": "textarea",
+      "type": "richtext",
       "required": true
     },
     {
       "key": "author_id",
       "label": "作成者ID",
       "type": "number",
+      "required": false
+    },
+    {
+      "key": "excerpt",
+      "label": "抜粋",
+      "type": "textarea",
+      "required": false
+    },
+    {
+      "key": "hero_image",
+      "label": "アイキャッチ画像",
+      "type": "file",
+      "accept": "image/*",
+      "maxSizeMb": 5,
+      "uploadEndpoint": "/api/upload"
+    },
+    {
+      "key": "tagIds",
+      "label": "タグ",
+      "type": "multiselect",
+      "source": "/api/tag/list",
+      "allowCreate": true,
       "required": false
     },
     {
@@ -71,5 +93,22 @@
   ],
   "pagination": {
     "pageSize": 10
+  },
+  "listLayout": {
+    "type": "card",
+    "titleField": "title",
+    "dateField": "created_at",
+    "excerptField": "excerpt",
+    "imageField": "hero_image",
+    "tagsField": "tags"
+  },
+  "detailLayout": {
+    "titleField": "title",
+    "dateField": "created_at",
+    "imageField": "hero_image",
+    "tagsField": "tags",
+    "excerptField": "excerpt",
+    "contentField": "content",
+    "order": ["title", "date", "image", "tags", "excerpt", "content"]
   }
 }

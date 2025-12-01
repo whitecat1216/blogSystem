@@ -5,10 +5,20 @@ import com.example.app.service.DynamicScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/screen")
@@ -90,12 +100,29 @@ public class DynamicScreenController {
     public ResponseEntity<Void> createRecord(
             @PathVariable String screenName,
             @RequestBody Map<String, Object> data) {
-        
         try {
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
-            screenService.createRecord(definition.getTableName(), data);
+            // sanitize richtext fields (e.g., content)
+            sanitizeRichText(definition, data);
+            // tagIds (multiselect) handling for blog_post
+            List<Integer> tagIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
+                Object raw = data.get("tagIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        tagIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("tagIds"); // not a direct column
+            }
+            int newId = screenService.createRecordReturnId(definition.getTableName(), data);
+            if (tagIds != null) {
+                screenService.updatePostTags(newId, tagIds);
+            }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Create error: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -105,14 +132,44 @@ public class DynamicScreenController {
             @PathVariable String screenName,
             @PathVariable int id,
             @RequestBody Map<String, Object> data) {
-        
         try {
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
+            sanitizeRichText(definition, data);
+            List<Integer> tagIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
+                Object raw = data.get("tagIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        tagIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("tagIds");
+            }
             screenService.updateRecord(definition.getTableName(), id, data);
+            if (tagIds != null) {
+                screenService.updatePostTags(id, tagIds);
+            }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
         }
+    }
+
+    private void sanitizeRichText(ScreenDefinition definition, Map<String,Object> data){
+        try {
+            if (definition.getFormFields() == null) return;
+            for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                if ("richtext".equalsIgnoreCase(f.getType())) {
+                    Object v = data.get(f.getKey());
+                    if (v != null) {
+                        // 見出しタグ(h1,h2,h3)も許可した拡張サニタイズ
+                        Safelist allowed = Safelist.relaxed().addTags("h1","h2","h3");
+                        String cleaned = Jsoup.clean(v.toString(), allowed);
+                        data.put(f.getKey(), cleaned);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     @DeleteMapping("/{screenName}/data/{id}")
@@ -126,6 +183,32 @@ public class DynamicScreenController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            String original = file.getOriginalFilename();
+            String ext = "";
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf('.'));
+            }
+            String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            Path uploadRoot = Paths.get("src", "main", "resources", "static", "uploads", dateDir);
+            Files.createDirectories(uploadRoot);
+            String filename = UUID.randomUUID().toString().replace("-", "") + ext;
+            Path target = uploadRoot.resolve(filename);
+            file.transferTo(target.toFile());
+            String url = "/uploads/" + dateDir + "/" + filename;
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("url", url);
+            return ResponseEntity.ok(resp);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

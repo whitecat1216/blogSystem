@@ -9,6 +9,7 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
     $scope.totalPages = 0;
     $scope.totalRecords = 0;
     $scope.pageSize = 10;
+    $scope.isAdmin = false;
     
     $scope.editMode = false;
     $scope.currentRecord = {};
@@ -16,10 +17,25 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
     
     // 画面定義の読み込み
     $scope.loadDefinition = function() {
+        // 認証ステータス確認してUI制御
+        $http.get('/api/auth/status').then(function(resp){
+            $scope.isAdmin = !!resp.data.isAdmin;
+        });
         $http.get('/api/screen/' + $scope.screenName + '/definition')
             .then(function(response) {
                 $scope.definition = response.data;
                 $scope.pageSize = $scope.definition.pagination.pageSize || 10;
+                // preload multiselect sources
+                if ($scope.definition.formFields) {
+                    $scope.definition.formFields.forEach(function(f){
+                        if (f.type === 'multiselect' && f.source) {
+                            $http.get(f.source).then(function(r){
+                                // expecting [{id:..., name:...}]
+                                f._options = r.data;
+                            });
+                        }
+                    });
+                }
                 $scope.searchData();
             })
             .catch(function(error) {
@@ -74,6 +90,7 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
         $scope.currentRecord = {};
         $scope.isNewRecord = true;
         $scope.editMode = true;
+        setTimeout(initRichEditors, 0);
     };
     
     // 編集モード
@@ -81,6 +98,7 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
         $scope.currentRecord = angular.copy(record);
         $scope.isNewRecord = false;
         $scope.editMode = true;
+        setTimeout(initRichEditors, 0);
     };
     
     // 保存
@@ -136,4 +154,79 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
     
     // 初期化
     $scope.loadDefinition();
+        
+        // File upload handler for fields with type 'file'
+        $scope.onFileSelected = function(field, files) {
+            if (!files || files.length === 0) return;
+            var file = files[0];
+            if (field.accept && !file.type.match(field.accept.replace('*','.*'))) {
+                alert('許可されていないファイルタイプです');
+                return;
+            }
+            if (field.maxSizeMb && file.size > field.maxSizeMb * 1024 * 1024) {
+                alert('ファイルサイズが大きすぎます');
+                return;
+            }
+            var endpoint = field.uploadEndpoint || '/api/upload';
+            var formData = new FormData();
+            formData.append('file', file);
+            $http.post(endpoint, formData, {
+                transformRequest: angular.identity,
+                headers: { 'Content-Type': undefined }
+            }).then(function(resp) {
+                var url = resp.data.url;
+                $scope.currentRecord[field.key] = url;
+            });
+        };
+
+        // add new option for multiselect (tags)
+        $scope.addNewOption = function(field, newName) {
+            if (!newName || !field.allowCreate) return;
+            $http.post('/api/tag', {name: newName}).then(function(resp){
+                if (!field._options) field._options = [];
+                field._options.push(resp.data);
+                if (!$scope.currentRecord[field.key]) {
+                    $scope.currentRecord[field.key] = [];
+                }
+                $scope.currentRecord[field.key].push(resp.data.id);
+                field._newName = '';
+            });
+        };
+
+        // initialize Quill editors and bind to currentRecord
+        function initRichEditors(){
+            if (!$scope.definition || !$scope.definition.formFields) return;
+            $scope.definition.formFields.forEach(function(field){
+                if (field.type === 'richtext'){
+                    var el = document.getElementById('quill_'+field.key);
+                    if (!el) return;
+                    // Quillエディタ初期化（太字/見出し/リスト等のツールバー追加）
+                    var q = new Quill(el, {
+                        theme: 'snow',
+                        modules: {
+                            toolbar: [
+                                [{ header: [1, 2, 3, false] }],
+                                ['bold', 'italic', 'underline', 'strike'],
+                                ['blockquote', 'code-block'],
+                                [{ list: 'ordered' }, { list: 'bullet' }],
+                                [{ indent: '-1' }, { indent: '+1' }],
+                                [{ color: [] }, { background: [] }],
+                                [{ align: [] }],
+                                ['clean']
+                            ]
+                        }
+                    });
+                    var html = $scope.currentRecord[field.key] || '';
+                    if (html){
+                        q.clipboard.dangerouslyPasteHTML(html);
+                    }
+                    q.on('text-change', function(){
+                        var htmlContent = el.querySelector('.ql-editor').innerHTML;
+                        $scope.$applyAsync(function(){
+                            $scope.currentRecord[field.key] = htmlContent;
+                        });
+                    });
+                }
+            });
+        }
 }]);

@@ -12,6 +12,10 @@ blogApp.config(['$routeProvider', '$locationProvider', function($routeProvider, 
             templateUrl: '/views/dynamicScreen.html',
             controller: 'DynamicScreenController'
         })
+        .when('/post/:id', {
+            templateUrl: '/views/post.html',
+            controller: 'PostController'
+        })
         .otherwise({
             redirectTo: '/'
         });

@@ -33,6 +33,8 @@
             margin-top: 20px;
         }
     </style>
+    <!-- Quill Rich Text Editor (CDN) -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -53,6 +55,10 @@
                     <li><a href="#!/screen/blog">記事管理</a></li>
                     <li><a href="#!/screen/comment">コメント管理</a></li>
                     <li><a href="#!/screen/category">カテゴリ管理</a></li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li ng-if="!isAdmin && !username || username==='anonymous'"><a href="/login"><span class="glyphicon glyphicon-log-in"></span> ログイン</a></li>
+                    <li ng-if="username && username!=='anonymous'"><a href="/logout"><span class="glyphicon glyphicon-log-out"></span> ログアウト ({{username}})</a></li>
                 </ul>
             </div>
         </div>
@@ -78,7 +84,10 @@
     <script src="/scripts/controllers/navigationController.js"></script>
     <script src="/scripts/controllers/homeController.js"></script>
     <script src="/scripts/controllers/dynamicScreenController.js"></script>
+    <script src="/scripts/controllers/postController.js"></script>
     <script src="/scripts/filters/range.js"></script>
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
 </body>
 </html>

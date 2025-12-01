@@ -1,0 +1,22 @@
+<div class="post-detail" ng-if="!loading && post && definition">
+  <div ng-init="dl = definition.detailLayout">
+    <div ng-repeat="section in dl.order">
+      <h1 class="post-title" ng-if="section==='title'">{{ post[dl.titleField] }}</h1>
+      <div class="post-meta" ng-if="section==='date'">
+        <span class="post-date">{{ post[dl.dateField] | date:'yyyy/MM/dd' }}</span>
+      </div>
+      <div class="post-hero" ng-if="section==='image' && post[dl.imageField]">
+        <img ng-src="{{ post[dl.imageField] }}" alt="hero" style="max-width:100%; height:auto;" />
+      </div>
+      <div class="post-tags" ng-if="section==='tags' && post[dl.tagsField]">{{ post[dl.tagsField] }}</div>
+      <div class="post-excerpt" ng-if="section==='excerpt' && post[dl.excerptField]">
+        <p>{{ post[dl.excerptField] }}</p>
+      </div>
+      <div class="post-content" ng-if="section==='content'">
+        <p ng-bind="post[dl.contentField]"></p>
+      </div>
+    </div>
+  </div>
+</div>
+<div ng-if="loading">読み込み中...</div>
+<div ng-if="error" class="alert alert-danger">{{ error }}</div>

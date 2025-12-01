@@ -97,9 +97,12 @@ public class DynamicScreenService {
     }
 
     public void createRecord(String tableName, Map<String, Object> data) {
+        createRecordReturnId(tableName, data);
+    }
+
+    public int createRecordReturnId(String tableName, Map<String, Object> data) {
         StringBuilder columns = new StringBuilder();
         StringBuilder values = new StringBuilder();
-        
         for (String key : data.keySet()) {
             if (columns.length() > 0) {
                 columns.append(", ");
@@ -108,9 +111,8 @@ public class DynamicScreenService {
             columns.append(key);
             values.append("?");
         }
-        
-        String sql = "INSERT INTO " + tableName + " (" + columns + ") VALUES (" + values + ")";
-        jdbcTemplate.update(sql, data.values().toArray());
+        String sql = "INSERT INTO " + tableName + " (" + columns + ") VALUES (" + values + ") RETURNING id";
+        return jdbcTemplate.queryForObject(sql, data.values().toArray(), Integer.class);
     }
 
     public void updateRecord(String tableName, int id, Map<String, Object> data) {
@@ -137,5 +139,23 @@ public class DynamicScreenService {
     public void deleteRecord(String tableName, int id) {
         String sql = "DELETE FROM " + tableName + " WHERE id = ?";
         jdbcTemplate.update(sql, id);
+    }
+
+    // --- Tag relation helpers (blog_post specific) ---
+    public void updatePostTags(int postId, List<Integer> tagIds) {
+        // remove existing
+        jdbcTemplate.update("DELETE FROM post_tag WHERE post_id = ?", postId);
+        if (tagIds != null && !tagIds.isEmpty()) {
+            for (Integer tagId : tagIds) {
+                jdbcTemplate.update("INSERT INTO post_tag (post_id, tag_id) VALUES (?, ?)", postId, tagId);
+            }
+            // build comma separated names for denormalized search/display
+            String inClause = String.join(",", tagIds.stream().map(String::valueOf).toList());
+            List<String> names = jdbcTemplate.queryForList("SELECT name FROM blog_tag WHERE id IN (" + inClause + ") ORDER BY name", String.class);
+            String summary = String.join(",", names);
+            jdbcTemplate.update("UPDATE blog_post SET tags = ? WHERE id = ?", summary, postId);
+        } else {
+            jdbcTemplate.update("UPDATE blog_post SET tags = NULL WHERE id = ?", postId);
+        }
     }
 }
