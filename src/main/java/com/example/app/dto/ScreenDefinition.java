@@ -44,6 +44,8 @@ public class ScreenDefinition {
         // for multiselect dynamic options
         private String source; // e.g. "/api/tag/list"
         private Boolean allowCreate; // allow creating new option via POST
+        private String autoFill; // auto-fill with "username" or other value
+        private Integer rows; // for textarea
     }
 
     @Data
@@ -70,5 +72,18 @@ public class ScreenDefinition {
         private String excerptField;
         private String contentField;
         private List<String> order;
+        private CommentConfig comments;
+    }
+    
+    @Data
+    public static class CommentConfig {
+        private Boolean enabled;
+        private String tableName;
+        private String foreignKey;
+        private String authorField;
+        private String textField;
+        private String dateField;
+        private Boolean allowAnonymous;
+        private List<FormField> formFields;
     }
 }

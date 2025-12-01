@@ -36,7 +36,7 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.PUT, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/tag").hasRole("ADMIN")
-                    .requestMatchers("/login.html", "/register.html", "/app/**", "/scripts/**", "/views/**", "/", "/static/**").permitAll()
+                    .requestMatchers("/login.html", "/register.html", "/app/**", "/scripts/**", "/views/**", "/styles/**", "/", "/static/**").permitAll()
                     .anyRequest().permitAll()
                 )
             // Basic認証は開発用。常時admin状態を避けるためフォームログインのみ利用。

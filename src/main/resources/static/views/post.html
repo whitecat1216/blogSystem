@@ -3,19 +3,85 @@
     <div ng-repeat="section in dl.order">
       <h1 class="post-title" ng-if="section==='title'">{{ post[dl.titleField] }}</h1>
       <div class="post-meta" ng-if="section==='date'">
-        <span class="post-date">{{ post[dl.dateField] | date:'yyyy/MM/dd' }}</span>
+        <span class="post-date">
+          <span class="glyphicon glyphicon-calendar"></span>
+          {{ post[dl.dateField] | date:'yyyy年MM月dd日' }}
+        </span>
       </div>
       <div class="post-hero" ng-if="section==='image' && post[dl.imageField]">
-        <img ng-src="{{ post[dl.imageField] }}" alt="hero" style="max-width:100%; height:auto;" />
+        <img ng-src="{{ post[dl.imageField] }}" alt="hero" class="img-responsive" style="max-width:100%; height:auto; border-radius: 4px;" />
       </div>
-      <div class="post-tags" ng-if="section==='tags' && post[dl.tagsField]">{{ post[dl.tagsField] }}</div>
+      <div class="post-tags" ng-if="section==='tags' && post[dl.tagsField]">
+        <span class="glyphicon glyphicon-tags"></span>
+        <span class="label label-info" ng-repeat="tag in post[dl.tagsField].split(',')" style="margin-right: 5px;">{{ tag }}</span>
+      </div>
       <div class="post-excerpt" ng-if="section==='excerpt' && post[dl.excerptField]">
-        <p>{{ post[dl.excerptField] }}</p>
+        <p class="lead" style="background: #f9f9f9; padding: 15px; border-left: 4px solid #5bc0de;">{{ post[dl.excerptField] }}</p>
       </div>
       <div class="post-content" ng-if="section==='content'">
-        <p ng-bind="post[dl.contentField]"></p>
+        <div ng-bind-html="post[dl.contentField]" style="line-height: 1.8;"></div>
       </div>
     </div>
+    
+    <!-- Back Button -->
+    <div class="post-actions" style="margin: 30px 0; padding: 20px 0; border-top: 1px solid #eee;">
+      <a href="#!/screen/blog" class="btn btn-default">
+        <span class="glyphicon glyphicon-arrow-left"></span> 記事一覧に戻る
+      </a>
+      <button class="btn btn-primary" ng-if="isAdmin" ng-click="editPost()">
+        <span class="glyphicon glyphicon-edit"></span> 編集
+      </button>
+    </div>
+    
+    <!-- Comments Section -->
+    <section class="comments-section" ng-if="dl.comments && dl.comments.enabled" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #ddd;">
+      <h3>コメント ({{ comments.length }})</h3>
+      
+      <!-- Comment List -->
+      <div class="comment-list" ng-if="comments.length > 0" style="margin-bottom: 30px;">
+        <div class="comment-item" ng-repeat="comment in comments" style="padding: 15px; margin-bottom: 15px; background: #f9f9f9; border-radius: 4px; border-left: 3px solid #5bc0de;">
+          <div class="comment-header" style="margin-bottom: 8px;">
+            <strong class="comment-author" style="color: #333; margin-right: 10px;">{{ comment[dl.comments.authorField] }}</strong>
+            <span class="comment-date text-muted" style="font-size: 0.9em;">{{ comment[dl.comments.dateField] | date:'yyyy/MM/dd HH:mm' }}</span>
+          </div>
+          <div class="comment-body" style="color: #555; white-space: pre-wrap;">
+            {{ comment[dl.comments.textField] }}
+          </div>
+        </div>
+      </div>
+      
+      <div class="no-comments text-muted" ng-if="comments.length === 0" style="padding: 20px; text-align: center;">
+        <p>まだコメントがありません。最初のコメントを投稿しましょう！</p>
+      </div>
+      
+      <!-- Comment Form -->
+      <div class="comment-form" style="margin-top: 30px; padding: 20px; background: #f5f5f5; border-radius: 4px;">
+        <h4 style="margin-top: 0;">コメントを投稿する</h4>
+        <div ng-if="!authenticated" class="alert alert-info">
+          コメントを投稿するには<a href="/login.html">ログイン</a>が必要です。
+        </div>
+        <form ng-if="authenticated" ng-submit="submitComment()">
+          <div class="form-group" ng-repeat="field in dl.comments.formFields">
+            <label>{{ field.label }} <span class="text-danger" ng-if="field.required">*</span></label>
+            <input type="text" 
+                   ng-if="field.type === 'text'" 
+                   class="form-control" 
+                   ng-model="newComment[field.key]"
+                   ng-required="field.required"
+                   ng-readonly="field.autoFill === 'username'">
+            <textarea ng-if="field.type === 'textarea'" 
+                      class="form-control" 
+                      rows="{{ field.rows || 4 }}"
+                      ng-model="newComment[field.key]"
+                      ng-required="field.required"
+                      placeholder="{{ field.placeholder || 'コメントを入力してください' }}"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary" ng-disabled="commentSubmitting">
+            <span class="glyphicon glyphicon-comment"></span> {{ commentSubmitting ? '送信中...' : 'コメントを投稿' }}
+          </button>
+        </form>
+      </div>
+    </section>
   </div>
 </div>
 <div ng-if="loading">読み込み中...</div>
