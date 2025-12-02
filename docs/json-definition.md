@@ -156,6 +156,14 @@
 - `POST /api/user/register`: 新規ユーザー登録
 - `GET /api/tag/list`: タグ一覧取得（multiselect用）
 
+### お問い合わせAPI
+- `POST /api/contact/submit`: お問い合わせ送信（認証不要）
+- `GET /api/contact`: お問い合わせ一覧取得（管理者のみ）
+- `GET /api/contact/{id}`: お問い合わせ詳細取得（管理者のみ）
+- `PUT /api/contact/{id}`: お問い合わせ更新（管理者のみ）
+- `POST /api/contact/{id}/reply`: お問い合わせに返信（管理者のみ）
+- `DELETE /api/contact/{id}`: お問い合わせ削除（管理者のみ）
+
 ## sections（ホーム画面用）
 ホーム画面にさまざまなセクションを表示するための設定です。
 
@@ -602,6 +610,126 @@ CREATE TABLE IF NOT EXISTS home_config_history (
 
 メニュー表示制御は `index.html` で `ng-if="isAdmin"` により実装されています。
 
+## お問い合わせ機能
+
+### 概要
+ユーザーがWebフォームから問い合わせを送信し、管理者が返信できる機能です。管理者の返信はメールで送信されます。
+
+### データベーススキーマ
+```sql
+CREATE TABLE IF NOT EXISTS contact_message (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(255) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'new',
+    reply TEXT,
+    replied_at TIMESTAMP,
+    replied_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+```
+
+### ステータス
+- **new**: 新規（未対応）
+- **replied**: 返信済み
+- **archived**: アーカイブ済み
+
+### 公開フォーム
+`/contact.html` で誰でもアクセス可能な問い合わせフォームを提供します。
+
+フォーム項目:
+- お名前（必須）
+- メールアドレス（必須）
+- 件名（必須）
+- お問い合わせ内容（必須）
+
+### 管理画面
+管理者は `#!/screen/contact` でお問い合わせを管理できます。
+
+機能:
+- お問い合わせ一覧表示
+- ステータス・メールアドレスでの検索
+- 詳細表示
+- 返信内容の入力とメール送信
+- ステータス更新
+- 削除
+
+### メール送信設定
+
+#### application.yml設定例
+```yaml
+spring:
+  mail:
+    enabled: true  # メール送信を有効化
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password
+    from: noreply@blog.com
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+```
+
+#### 開発環境での動作
+`spring.mail.enabled` が `false` の場合、実際のメール送信は行わず、ログ出力のみ行います。
+
+### contact.json定義例
+```json
+{
+  "title": "お問い合わせ管理",
+  "tableName": "contact_message",
+  "searchFields": [
+    {
+      "key": "status",
+      "label": "ステータス",
+      "type": "select",
+      "options": ["new", "replied", "archived"]
+    },
+    {
+      "key": "email",
+      "label": "メールアドレス",
+      "type": "text"
+    }
+  ],
+  "listColumns": [
+    {"key": "id", "label": "ID", "sortable": true},
+    {"key": "name", "label": "名前", "sortable": true},
+    {"key": "email", "label": "メールアドレス"},
+    {"key": "subject", "label": "件名", "sortable": true},
+    {"key": "status", "label": "ステータス", "sortable": true},
+    {"key": "created_at", "label": "受信日時", "sortable": true}
+  ],
+  "formFields": [
+    {"key": "name", "label": "名前", "type": "text", "required": true},
+    {"key": "email", "label": "メールアドレス", "type": "text", "required": true},
+    {"key": "subject", "label": "件名", "type": "text", "required": true},
+    {"key": "message", "label": "お問い合わせ内容", "type": "textarea", "rows": 8, "required": true},
+    {"key": "status", "label": "ステータス", "type": "select", "options": ["new", "replied", "archived"], "required": true},
+    {"key": "reply", "label": "返信内容", "type": "textarea", "rows": 8}
+  ],
+  "pagination": {"pageSize": 20}
+}
+```
+
+### セキュリティ
+- 公開フォーム（`/contact.html`, `/api/contact/submit`）は認証不要
+- 管理機能（一覧・返信・削除）は管理者（ADMIN）のみアクセス可能
+- メール送信時は送信者情報とタイムスタンプを記録
+
+### 実装ファイル
+- `ContactController.java`: REST APIエンドポイント
+- `ContactService.java`: ビジネスロジック（CRUD、返信処理）
+- `ContactMessage.java`: エンティティ
+- `EmailService.java`: メール送信サービス
+- `contact.html`: 公開フォームページ
+- `contact.json`: 管理画面定義
+
 ## 運用メモ
 - レイアウトや表示順の変更は `listLayout`/`detailLayout` を編集すれば反映されます。
 - 新しい DB カラムを追加する場合は、`schema.sql` と `formFields` の整合を取ってください。
@@ -610,3 +738,4 @@ CREATE TABLE IF NOT EXISTS home_config_history (
 - ホーム画面の表示内容は `home.json` の `sections` で制御します。
 - リッチテキストエディタ（Quill）は太字、見出し（h1/h2/h3）、リスト、リンク等をサポートします。
 - HTML出力はjsoupでサニタイズされ、安全なタグのみが保存されます。
+- お問い合わせ機能のメール送信は `application.yml` で設定が必要です（開発時は無効化可能）。

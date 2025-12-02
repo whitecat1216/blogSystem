@@ -5,8 +5,10 @@ Spring Boot + Doma + AngularJS で構築したJSON定義による画面自動生
 ## 📋 機能
 
 - **記事管理**: ブログ記事の作成・編集・削除・検索
-- **コメント管理**: 記事へのコメント管理
+- **コメント管理**: 記事への階層型コメント（返信機能付き）
 - **カテゴリ管理**: 記事のカテゴリ分類
+- **ホーム画面カスタマイズ**: JSON定義によるホーム画面のビジュアル編集（ヒーロー、スライドショー、統計、最新記事など）
+- **お問い合わせ機能**: 公開フォームからの問い合わせ受付と管理者による返信（メール送信）
 - **JSON定義による画面自動生成**: JSON定義ファイルを追加するだけで新しい管理画面を作成可能
 
 ## 🏗 技術スタック
@@ -17,6 +19,7 @@ Spring Boot + Doma + AngularJS で構築したJSON定義による画面自動生
 - **JdbcTemplate** - 動的SQL実行（現在のデータアクセス層）
 - **PostgreSQL** - 本番データベース
 - **Spring Security** - 認証・権限管理
+- **Spring Mail** - メール送信機能（お問い合わせ返信用）
 
 ### フロントエンド
 - **AngularJS 1.8.2** - JavaScriptフレームワーク
@@ -64,13 +67,19 @@ public interface BlogPostDao {
 │   │   │   │   ├── SecurityConfig.java             # セキュリティ設定
 │   │   │   │   └── WebConfig.java                  # Web設定
 │   │   │   ├── controller/
-│   │   │   │   └── DynamicScreenController.java    # REST APIコントローラー
+│   │   │   │   ├── DynamicScreenController.java    # REST APIコントローラー
+│   │   │   │   ├── ContactController.java          # お問い合わせAPIコントローラー
+│   │   │   │   └── HomeConfigController.java       # ホーム画面設定APIコントローラー
 │   │   │   ├── service/
-│   │   │   │   └── DynamicScreenService.java       # ビジネスロジック
+│   │   │   │   ├── DynamicScreenService.java       # ビジネスロジック
+│   │   │   │   ├── ContactService.java             # お問い合わせサービス
+│   │   │   │   ├── EmailService.java               # メール送信サービス
+│   │   │   │   └── HomeConfigService.java          # ホーム画面設定サービス
 │   │   │   ├── entity/
 │   │   │   │   ├── BlogPost.java                   # 記事エンティティ
 │   │   │   │   ├── BlogComment.java                # コメントエンティティ
-│   │   │   │   └── BlogCategory.java               # カテゴリエンティティ
+│   │   │   │   ├── BlogCategory.java               # カテゴリエンティティ
+│   │   │   │   └── ContactMessage.java             # お問い合わせエンティティ
 │   │   │   └── dto/
 │   │   │       └── ScreenDefinition.java           # 画面定義DTO
 │   │   └── resources/
@@ -81,7 +90,11 @@ public interface BlogPostDao {
 │   │       ├── screens/                             # JSON画面定義
 │   │       │   ├── blog.json                        # 記事管理画面定義
 │   │       │   ├── comment.json                     # コメント管理画面定義
-│   │       │   └── category.json                    # カテゴリ管理画面定義
+│   │       │   ├── category.json                    # カテゴリ管理画面定義
+│   │       │   ├── contact.json                     # お問い合わせ管理画面定義
+│   │       │   ├── home.json                        # ホーム画面定義
+│   │       │   ├── home-editor.json                 # ホーム画面編集画面定義
+│   │       │   └── post.json                        # 記事詳細画面定義
 │   │       └── static/
 │   │           ├── app/
 │   │           │   └── index.html                   # メインHTML
@@ -93,9 +106,15 @@ public interface BlogPostDao {
 │   │           │   │   └── navigationController.js
 │   │           │   └── filters/
 │   │           │       └── range.js                 # カスタムフィルター
-│   │           └── views/
-│   │               ├── home.html                    # ホーム画面
-│   │               └── dynamicScreen.html           # 動的画面テンプレート
+│   │           ├── views/
+│   │           │   ├── home.html                    # ホーム画面
+│   │           │   ├── home-editor.html             # ホーム画面編集
+│   │           │   ├── post.html                    # 記事詳細
+│   │           │   ├── comment-item.html            # コメント表示（再帰的）
+│   │           │   └── dynamicScreen.html           # 動的画面テンプレート
+│   │           ├── login.html                       # ログインページ
+│   │           ├── register.html                    # 新規登録ページ
+│   │           └── contact.html                     # お問い合わせページ（公開）
 ├── build.gradle                                     # Gradleビルド設定
 ├── settings.gradle                                  # Gradleプロジェクト設定
 └── README.md                                        # このファイル
@@ -165,6 +184,36 @@ API呼び出しには Basic認証が必要です（フロントエンドで自�
 
 記事のカテゴリを管理できます。
 
+### 5. お問い合わせ機能
+
+#### ユーザー側
+1. ナビゲーションバーの「お問い合わせ」をクリック、または `/contact.html` にアクセス
+2. フォームに必要事項を入力して送信
+3. 確認メッセージが表示されます
+
+#### 管理者側
+1. 管理者としてログイン
+2. ナビゲーションバーの「お問い合わせ管理」または設定メニューから選択
+3. お問い合わせ一覧を確認
+4. 詳細を開いて返信内容を入力
+5. 「保存」で返信メールが送信され、ステータスが「replied」に更新されます
+
+### 6. ホーム画面編集
+
+管理者は視覚的にホーム画面をカスタマイズできます：
+
+1. 管理者としてログイン
+2. 設定メニューから「ホーム画面編集」を選択
+3. セクションを追加・編集・並び替え
+   - ヒーローセクション（スライドショー）
+   - テキストブロック
+   - 統計情報
+   - 最新記事
+   - カテゴリグリッド
+   - カスタムHTML
+4. プレビューで確認
+5. 保存（バージョン管理あり）
+
 ## 🔧 カスタマイズ
 
 ### 新しい画面を追加する方法
@@ -221,6 +270,32 @@ spring:
     password: postgres
     driver-class-name: org.postgresql.Driver
 ```
+
+### メール設定（お問い合わせ返信用）
+
+実際にメールを送信する場合は、`application.yml` に以下を設定します：
+
+```yaml
+spring:
+  mail:
+    enabled: true  # true に設定してメール送信を有効化
+    host: smtp.gmail.com
+    port: 587
+    username: your-email@gmail.com
+    password: your-app-password  # Gmailの場合はアプリパスワード
+    from: noreply@blog.com
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+```
+
+**注意**: 
+- 開発環境では `enabled: false` のままで動作確認可能（ログ出力のみ）
+- Gmailを使用する場合は、[アプリパスワード](https://support.google.com/accounts/answer/185833)を生成してください
+- 本番環境では適切なSMTPサーバーを使用してください
 
 ### テーブル自動作成
 
