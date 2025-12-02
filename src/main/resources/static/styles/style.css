@@ -184,3 +184,381 @@ body {
     font-weight: bold;
     color: #333;
 }
+
+/* ========================================
+   ホームページ - セクションスタイル
+   ======================================== */
+
+.home-section {
+    position: relative;
+}
+
+.section-heading {
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e0e0e0;
+    font-weight: 600;
+}
+
+/* ヒーローセクション */
+.hero-section {
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 0;
+}
+
+.hero-slider {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+.hero-slide {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.hero-slide.active {
+    opacity: 1;
+    z-index: 1;
+}
+
+.hero-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.hero-content {
+    position: relative;
+    z-index: 2;
+    color: white;
+    text-align: center;
+    width: 100%;
+}
+
+.hero-title {
+    font-size: 48px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hero-subtitle {
+    font-size: 24px;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.hero-button {
+    padding: 15px 40px;
+    font-size: 18px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    transition: transform 0.3s;
+}
+
+.hero-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+}
+
+.hero-controls {
+    position: relative;
+    z-index: 3;
+}
+
+.hero-prev,
+.hero-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.5);
+    border: none;
+    color: white;
+    font-size: 30px;
+    padding: 15px 20px;
+    cursor: pointer;
+    transition: background 0.3s;
+    z-index: 10;
+}
+
+.hero-prev:hover,
+.hero-next:hover {
+    background: rgba(0,0,0,0.8);
+}
+
+.hero-prev {
+    left: 20px;
+}
+
+.hero-next {
+    right: 20px;
+}
+
+.hero-indicators {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.hero-indicators span {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.5);
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.hero-indicators span.active,
+.hero-indicators span:hover {
+    background: white;
+}
+
+/* テキストブロック */
+.text-block-section {
+    padding: 60px 20px;
+}
+
+.text-block-section h2 {
+    font-size: 36px;
+    margin-bottom: 20px;
+}
+
+.text-block-section p {
+    font-size: 18px;
+    line-height: 1.8;
+    color: #555;
+}
+
+/* 統計情報 */
+.stats-section {
+    padding: 40px 20px;
+}
+
+.stats-grid {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    flex-wrap: wrap;
+}
+
+.stats-grid.stats-horizontal {
+    flex-direction: row;
+}
+
+.stats-grid.stats-vertical {
+    flex-direction: column;
+    align-items: center;
+}
+
+.stat-item {
+    text-align: center;
+    min-width: 150px;
+}
+
+.stat-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.stat-value {
+    font-size: 36px;
+    font-weight: bold;
+    color: #333;
+}
+
+.stat-label {
+    font-size: 16px;
+    color: #666;
+    margin-top: 5px;
+}
+
+/* 最新記事セクション */
+.recent-posts-section {
+    padding: 40px 0;
+}
+
+/* グリッドレイアウト */
+.posts-grid {
+    margin-top: 30px;
+}
+
+.post-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.post-card-image {
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+}
+
+.post-card-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.post-card:hover .post-card-image img {
+    transform: scale(1.05);
+}
+
+.post-card-body {
+    padding: 20px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.post-card-title {
+    font-size: 20px;
+    margin: 0 0 10px 0;
+    font-weight: 600;
+}
+
+.post-card-title a {
+    color: #333;
+    text-decoration: none;
+}
+
+.post-card-title a:hover {
+    color: #5bc0de;
+}
+
+.post-card-date {
+    color: #999;
+    font-size: 14px;
+    margin-bottom: 15px;
+}
+
+.post-card-excerpt {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 15px;
+    flex: 1;
+}
+
+.post-card-tags {
+    margin-top: auto;
+}
+
+.post-card-tags .label {
+    margin-right: 5px;
+}
+
+/* リストレイアウト */
+.posts-list {
+    margin-top: 30px;
+}
+
+.post-list-item {
+    margin-bottom: 20px;
+}
+
+.post-list-item img {
+    max-height: 150px;
+    width: 100%;
+    object-fit: cover;
+}
+
+/* カテゴリグリッド */
+.category-grid-section {
+    padding: 40px 0;
+}
+
+.category-card {
+    display: block;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 30px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    transition: all 0.3s;
+    margin-bottom: 20px;
+    height: 100%;
+}
+
+.category-card:hover {
+    border-color: #5bc0de;
+    background: #f8f9fa;
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    text-decoration: none;
+    color: #5bc0de;
+}
+
+.category-card h3 {
+    margin: 0 0 10px 0;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.category-card p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
+
+/* カスタムHTML */
+.custom-html-section {
+    padding: 20px 0;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .hero-title {
+        font-size: 32px;
+    }
+    
+    .hero-subtitle {
+        font-size: 18px;
+    }
+    
+    .hero-button {
+        padding: 12px 30px;
+        font-size: 16px;
+    }
+    
+    .stats-grid {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .post-card-image {
+        height: 180px;
+    }
+}

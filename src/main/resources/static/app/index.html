@@ -35,6 +35,17 @@
                     <li ng-if="isAdmin"><a href="#!/screen/comment">コメント管理</a></li>
                     <!-- 管理者のみカテゴリ管理を表示 -->
                     <li ng-if="isAdmin"><a href="#!/screen/category">カテゴリ管理</a></li>
+                    <!-- 管理者のみホーム画面編集を表示 -->
+                    <li ng-if="isAdmin" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            設定 <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="javascript:void(0)" ng-click="editHomeConfig()">
+                                <span class="glyphicon glyphicon-home"></span> ホーム画面編集
+                            </a></li>
+                        </ul>
+                    </li>
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li ng-if="!authenticated"><a href="/register.html"><span class="glyphicon glyphicon-user"></span> 新規登録</a></li>

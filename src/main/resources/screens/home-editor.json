@@ -1,0 +1,29 @@
+{
+  "title": "ホーム画面設定",
+  "table": "home_config",
+  "requiresAuth": true,
+  "requiresAdmin": true,
+  "formFields": [
+    {
+      "key": "config_json",
+      "label": "ホーム画面JSON設定",
+      "type": "textarea",
+      "rows": 30,
+      "required": true,
+      "placeholder": "JSONフォーマットでホーム画面の設定を記述してください"
+    }
+  ],
+  "listFields": [
+    {
+      "key": "id",
+      "label": "ID",
+      "sortable": true
+    },
+    {
+      "key": "updated_at",
+      "label": "更新日時",
+      "sortable": true
+    }
+  ],
+  "searchFields": []
+}

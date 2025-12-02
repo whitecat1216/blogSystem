@@ -99,6 +99,53 @@ public class ScreenDefinition {
         private String whereClause;
         private DisplayFields displayFields;
         private String linkPattern;
+        
+        // Hero section properties
+        private String style;
+        private List<HeroSlide> slides;
+        private Boolean autoplay;
+        private Integer interval;
+        private String height;
+        private String animation;
+        
+        // Text block properties
+        private String content;
+        private String alignment;
+        private String backgroundColor;
+        private String padding;
+        
+        // Stats section properties
+        private List<StatItem> items;
+        private String layout;
+        
+        // Category grid properties
+        private Integer columns;
+    }
+    
+    @Data
+    public static class HeroSlide {
+        private String image;
+        private String title;
+        private String subtitle;
+        private String buttonText;
+        private String buttonLink;
+        private Overlay overlay;
+    }
+    
+    @Data
+    public static class Overlay {
+        private Boolean enabled;
+        private String color;
+        private Double opacity;
+    }
+    
+    @Data
+    public static class StatItem {
+        private String label;
+        private String sourceTable;
+        private String countWhere;
+        private String icon;
+        private String color;
     }
     
     @Data
@@ -108,5 +155,7 @@ public class ScreenDefinition {
         private String excerptField;
         private String imageField;
         private String tagsField;
+        private String nameField;        // for category/tag name
+        private String descriptionField; // for category/tag description
     }
 }

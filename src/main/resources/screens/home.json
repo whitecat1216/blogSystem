@@ -2,10 +2,79 @@
   "title": "ホーム",
   "sections": [
     {
+      "type": "hero",
+      "style": "slideshow",
+      "slides": [
+        {
+          "image": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1920&h=600&fit=crop",
+          "title": "ようこそ私のブログへ",
+          "subtitle": "技術とライフスタイルの記録",
+          "buttonText": "記事を読む",
+          "buttonLink": "#!/screen/blog",
+          "overlay": {
+            "enabled": true,
+            "color": "#000000",
+            "opacity": 0.4
+          }
+        },
+        {
+          "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1920&h=600&fit=crop",
+          "title": "最新技術を学ぶ",
+          "subtitle": "プログラミングの世界へ",
+          "buttonText": "詳しく見る",
+          "buttonLink": "#!/screen/blog",
+          "overlay": {
+            "enabled": true,
+            "color": "#1e3c72",
+            "opacity": 0.5
+          }
+        }
+      ],
+      "autoplay": true,
+      "interval": 5000,
+      "height": "500px",
+      "animation": "fade"
+    },
+    {
+      "type": "text-block",
+      "heading": "About This Blog",
+      "content": "日々の学びや経験を共有しています。プログラミング、デザイン、ライフハックなど幅広いトピックをカバーしています。",
+      "alignment": "center",
+      "backgroundColor": "#ffffff",
+      "padding": "60px 20px"
+    },
+    {
+      "type": "stats",
+      "backgroundColor": "#f8f9fa",
+      "padding": "40px 20px",
+      "items": [
+        {
+          "label": "記事",
+          "sourceTable": "blog_post",
+          "countWhere": "status = 'published'",
+          "icon": "glyphicon-file",
+          "color": "#5bc0de"
+        },
+        {
+          "label": "カテゴリ",
+          "sourceTable": "blog_category",
+          "icon": "glyphicon-folder-open",
+          "color": "#5cb85c"
+        },
+        {
+          "label": "コメント",
+          "sourceTable": "blog_comment",
+          "icon": "glyphicon-comment",
+          "color": "#f0ad4e"
+        }
+      ],
+      "layout": "horizontal"
+    },
+    {
       "type": "recent-posts",
       "heading": "最新記事",
       "sourceTable": "blog_post",
-      "limit": 5,
+      "limit": 6,
       "orderBy": "created_at",
       "orderDirection": "DESC",
       "whereClause": "status = 'published'",
@@ -16,7 +85,22 @@
         "imageField": "hero_image",
         "tagsField": "tags"
       },
-      "linkPattern": "#!/screen/blog/detail/{{id}}"
+      "linkPattern": "#!/screen/blog/detail/{{id}}",
+      "layout": "grid",
+      "columns": 3
+    },
+    {
+      "type": "category-grid",
+      "heading": "カテゴリから探す",
+      "sourceTable": "blog_category",
+      "displayFields": {
+        "nameField": "name",
+        "descriptionField": "description"
+      },
+      "columns": 3,
+      "linkPattern": "#!/screen/blog?category={{id}}",
+      "backgroundColor": "#ffffff",
+      "padding": "40px 20px"
     }
   ]
 }
