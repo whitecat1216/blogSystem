@@ -157,32 +157,273 @@
 - `GET /api/tag/list`: タグ一覧取得（multiselect用）
 
 ## sections（ホーム画面用）
-ホーム画面に最新記事やその他のセクションを表示するための設定です。
-- **type**: セクションタイプ（現在 `"recent-posts"` をサポート）
-- **heading**: セクション見出し（例: `"最新記事"`）
-- **sourceTable**: データソーステーブル（例: `"blog_post"`）
-- **limit**: 表示件数（例: `5`）
-- **orderBy**: ソート基準カラム（例: `"created_at"`）
+ホーム画面にさまざまなセクションを表示するための設定です。
+
+### サポートされるセクションタイプ
+
+#### 1. hero（ヒーローセクション/スライドショー）
+大きな背景画像とテキストを表示するセクション。スライドショー機能も含みます。
+
+```json
+{
+  "type": "hero",
+  "style": "slideshow",
+  "slides": [
+    {
+      "image": "https://example.com/image1.jpg",
+      "title": "ようこそ私のブログへ",
+      "subtitle": "技術とライフスタイルの記録",
+      "buttonText": "記事を読む",
+      "buttonLink": "#!/screen/blog",
+      "overlay": {
+        "enabled": true,
+        "color": "#000000",
+        "opacity": 0.4
+      }
+    }
+  ],
+  "autoplay": true,
+  "interval": 5000,
+  "height": "500px",
+  "animation": "fade"
+}
+```
+
+プロパティ:
+- **style**: スライドショースタイル（`"slideshow"` または `"static"`）
+- **slides**: スライドの配列
+  - **image**: 背景画像URL
+  - **title**: タイトルテキスト
+  - **subtitle**: サブタイトルテキスト
+  - **buttonText**: ボタンテキスト（任意）
+  - **buttonLink**: ボタンリンク先（任意）
+  - **overlay**: オーバーレイ設定
+    - **enabled**: オーバーレイを有効にするか
+    - **color**: オーバーレイの色（HEX）
+    - **opacity**: 不透明度（0.0〜1.0）
+- **autoplay**: 自動再生するか
+- **interval**: スライド切り替え間隔（ミリ秒）
+- **height**: セクションの高さ（CSS値）
+- **animation**: アニメーション効果（現在は `"fade"` のみ）
+
+#### 2. text-block（テキストブロック）
+テキストコンテンツを表示するセクション。
+
+```json
+{
+  "type": "text-block",
+  "heading": "About This Blog",
+  "content": "日々の学びや経験を共有しています。",
+  "alignment": "center",
+  "backgroundColor": "#ffffff",
+  "padding": "60px 20px"
+}
+```
+
+プロパティ:
+- **heading**: 見出しテキスト
+- **content**: 本文テキスト（HTML可）
+- **alignment**: テキスト配置（`"left"`, `"center"`, `"right"`）
+- **backgroundColor**: 背景色（HEX）
+- **padding**: パディング（CSS値）
+
+#### 3. stats（統計情報）
+記事数、コメント数などの統計を表示するセクション。
+
+```json
+{
+  "type": "stats",
+  "backgroundColor": "#f8f9fa",
+  "padding": "40px 20px",
+  "items": [
+    {
+      "label": "記事",
+      "sourceTable": "blog_post",
+      "countWhere": "status = 'published'",
+      "icon": "glyphicon-file",
+      "color": "#5bc0de"
+    }
+  ],
+  "layout": "horizontal"
+}
+```
+
+プロパティ:
+- **items**: 統計アイテムの配列
+  - **label**: ラベル
+  - **sourceTable**: カウント対象テーブル
+  - **countWhere**: WHERE条件（任意）
+  - **icon**: アイコンクラス（Bootstrap Glyphicons）
+  - **color**: アイコンの色（HEX）
+- **layout**: レイアウト（`"horizontal"` または `"vertical"`）
+- **backgroundColor**: 背景色
+- **padding**: パディング
+
+#### 4. recent-posts（最新記事）
+最新記事を一覧表示するセクション。グリッドまたはリストレイアウトをサポート。
+
+```json
+{
+  "type": "recent-posts",
+  "heading": "最新記事",
+  "sourceTable": "blog_post",
+  "limit": 6,
+  "orderBy": "created_at",
+  "orderDirection": "DESC",
+  "whereClause": "status = 'published'",
+  "displayFields": {
+    "titleField": "title",
+    "dateField": "created_at",
+    "excerptField": "excerpt",
+    "imageField": "hero_image",
+    "tagsField": "tags"
+  },
+  "linkPattern": "#!/screen/blog/detail/{{id}}",
+  "layout": "grid",
+  "columns": 3
+}
+```
+
+プロパティ:
+- **heading**: セクション見出し
+- **sourceTable**: データソーステーブル
+- **limit**: 表示件数
+- **orderBy**: ソート基準カラム
 - **orderDirection**: ソート方向（`"DESC"` または `"ASC"`）
-- **whereClause**: WHERE条件（例: `"status = 'published'"`）
+- **whereClause**: WHERE条件
 - **displayFields**: 表示フィールド設定
   - **titleField**: タイトルフィールド
   - **dateField**: 日付フィールド
   - **excerptField**: 抜粋フィールド
   - **imageField**: 画像フィールド
   - **tagsField**: タグフィールド
-- **linkPattern**: 詳細ページへのリンクパターン（例: `"#!/screen/blog/detail/{{id}}"`）
+- **linkPattern**: 詳細ページへのリンクパターン（`{{id}}` を含む）
+- **layout**: レイアウト（`"grid"` または `"list"`）
+- **columns**: グリッドのカラム数（1〜4）
 
-### 例：home.json
+#### 5. category-grid（カテゴリグリッド）
+カテゴリをカード形式で表示するセクション。
+
+```json
+{
+  "type": "category-grid",
+  "heading": "カテゴリから探す",
+  "sourceTable": "blog_category",
+  "displayFields": {
+    "nameField": "name",
+    "descriptionField": "description"
+  },
+  "columns": 3,
+  "linkPattern": "#!/screen/blog?category={{id}}",
+  "backgroundColor": "#ffffff",
+  "padding": "40px 20px"
+}
+```
+
+プロパティ:
+- **heading**: セクション見出し
+- **sourceTable**: データソーステーブル
+- **displayFields**: 表示フィールド設定
+  - **nameField**: 名前フィールド
+  - **descriptionField**: 説明フィールド
+- **columns**: カラム数
+- **linkPattern**: リンクパターン
+- **backgroundColor**: 背景色
+- **padding**: パディング
+
+#### 6. custom-html（カスタムHTML）
+任意のHTMLコンテンツを挿入するセクション。
+
+```json
+{
+  "type": "custom-html",
+  "content": "<div class='custom-widget'>任意のHTML</div>"
+}
+```
+
+プロパティ:
+- **content**: HTML文字列
+
+### 例：home.json（完全版）
+### 例：home.json（完全版）
 ```json
 {
   "title": "ホーム",
   "sections": [
     {
+      "type": "hero",
+      "style": "slideshow",
+      "slides": [
+        {
+          "image": "https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=1920&h=600&fit=crop",
+          "title": "ようこそ私のブログへ",
+          "subtitle": "技術とライフスタイルの記録",
+          "buttonText": "記事を読む",
+          "buttonLink": "#!/screen/blog",
+          "overlay": {
+            "enabled": true,
+            "color": "#000000",
+            "opacity": 0.4
+          }
+        },
+        {
+          "image": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=1920&h=600&fit=crop",
+          "title": "最新技術を学ぶ",
+          "subtitle": "プログラミングの世界へ",
+          "buttonText": "詳しく見る",
+          "buttonLink": "#!/screen/blog",
+          "overlay": {
+            "enabled": true,
+            "color": "#1e3c72",
+            "opacity": 0.5
+          }
+        }
+      ],
+      "autoplay": true,
+      "interval": 5000,
+      "height": "500px",
+      "animation": "fade"
+    },
+    {
+      "type": "text-block",
+      "heading": "About This Blog",
+      "content": "日々の学びや経験を共有しています。プログラミング、デザイン、ライフハックなど幅広いトピックをカバーしています。",
+      "alignment": "center",
+      "backgroundColor": "#ffffff",
+      "padding": "60px 20px"
+    },
+    {
+      "type": "stats",
+      "backgroundColor": "#f8f9fa",
+      "padding": "40px 20px",
+      "items": [
+        {
+          "label": "記事",
+          "sourceTable": "blog_post",
+          "countWhere": "status = 'published'",
+          "icon": "glyphicon-file",
+          "color": "#5bc0de"
+        },
+        {
+          "label": "カテゴリ",
+          "sourceTable": "blog_category",
+          "icon": "glyphicon-folder-open",
+          "color": "#5cb85c"
+        },
+        {
+          "label": "コメント",
+          "sourceTable": "blog_comment",
+          "icon": "glyphicon-comment",
+          "color": "#f0ad4e"
+        }
+      ],
+      "layout": "horizontal"
+    },
+    {
       "type": "recent-posts",
       "heading": "最新記事",
       "sourceTable": "blog_post",
-      "limit": 5,
+      "limit": 6,
       "orderBy": "created_at",
       "orderDirection": "DESC",
       "whereClause": "status = 'published'",
@@ -193,11 +434,159 @@
         "imageField": "hero_image",
         "tagsField": "tags"
       },
-      "linkPattern": "#!/screen/blog/detail/{{id}}"
+      "linkPattern": "#!/screen/blog/detail/{{id}}",
+      "layout": "grid",
+      "columns": 3
+    },
+    {
+      "type": "category-grid",
+      "heading": "カテゴリから探す",
+      "sourceTable": "blog_category",
+      "displayFields": {
+        "nameField": "name",
+        "descriptionField": "description"
+      },
+      "columns": 3,
+      "linkPattern": "#!/screen/blog?category={{id}}",
+      "backgroundColor": "#ffffff",
+      "padding": "40px 20px"
     }
   ]
 }
 ```
+
+## ホーム画面編集システム
+
+### 概要
+ホーム画面（`home.json`）をGUI経由で編集・プレビュー・保存できる機能を提供します。
+
+### 編集方法
+
+#### 方法1: 直接ファイル編集
+`src/main/resources/screens/home.json` を直接編集してサーバーを再起動します。
+
+#### 方法2: 管理画面での編集
+1. 管理者としてログイン
+2. ナビゲーションバーの「設定」→「ホーム画面編集」をクリック
+3. ビジュアルエディタまたはJSON直接編集モードで編集
+4. プレビューで確認
+5. 保存（自動でバージョン管理）
+
+### ホーム画面編集API
+
+#### GET /api/home/config
+現在のホーム画面設定を取得します。
+
+レスポンス:
+```json
+{
+  "id": 1,
+  "config_json": "{...}",
+  "version": 3,
+  "updated_at": "2025-12-02T12:34:56",
+  "updated_by": "admin"
+}
+```
+
+#### PUT /api/home/config
+ホーム画面設定を更新します（管理者のみ）。
+
+リクエスト:
+```json
+{
+  "config_json": "{\"title\":\"ホーム\",\"sections\":[...]}"
+}
+```
+
+レスポンス:
+```json
+{
+  "success": true,
+  "version": 4,
+  "message": "ホーム画面設定を更新しました"
+}
+```
+
+#### GET /api/home/config/history
+設定変更履歴を取得します（管理者のみ）。
+
+レスポンス:
+```json
+{
+  "records": [
+    {
+      "id": 3,
+      "version": 3,
+      "config_json": "{...}",
+      "updated_at": "2025-12-02T12:34:56",
+      "updated_by": "admin"
+    }
+  ]
+}
+```
+
+#### POST /api/home/config/restore/{version}
+指定バージョンの設定に復元します（管理者のみ）。
+
+### ビジュアルエディタ機能
+
+#### セクションの追加
+1. 「セクションを追加」ボタンをクリック
+2. セクションタイプを選択（hero, text-block, stats, recent-posts, category-grid, custom-html）
+3. 各フィールドを入力
+4. 「追加」をクリック
+
+#### セクションの並び替え
+- セクションをドラッグ&ドロップで移動
+- 上下矢印ボタンで順序を変更
+
+#### セクションの編集
+- 各セクションの「編集」ボタンをクリック
+- フィールドを変更
+- 「保存」をクリック
+
+#### セクションの削除
+- 各セクションの「削除」ボタンをクリック
+- 確認ダイアログで「OK」
+
+### プレビュー機能
+- 「プレビュー」ボタンをクリック
+- モーダルウィンドウで実際のレンダリング結果を確認
+- プレビュー中も編集可能（リアルタイム反映）
+
+### バージョン管理
+- すべての変更は自動的にバージョン管理される
+- 変更履歴から過去のバージョンを確認可能
+- 任意のバージョンに復元可能
+- 変更者とタイムスタンプが記録される
+
+### データベーススキーマ
+
+```sql
+CREATE TABLE IF NOT EXISTS home_config (
+    id SERIAL PRIMARY KEY,
+    config_json TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS home_config_history (
+    id SERIAL PRIMARY KEY,
+    config_id INTEGER NOT NULL,
+    version INTEGER NOT NULL,
+    config_json TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_by VARCHAR(100),
+    FOREIGN KEY (config_id) REFERENCES home_config(id) ON DELETE CASCADE
+);
+```
+
+### セキュリティ
+- ホーム画面設定の編集は管理者（ADMIN）のみ可能
+- すべての操作はログに記録
+- JSON妥当性チェックを実行
+- XSS対策としてHTMLコンテンツをサニタイズ
 
 ## 権限
 - **一般ユーザー（USER）**: 

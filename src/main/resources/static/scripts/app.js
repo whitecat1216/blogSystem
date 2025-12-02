@@ -23,6 +23,10 @@ blogApp.config(['$routeProvider', '$locationProvider', function($routeProvider, 
             templateUrl: '/views/post.html',
             controller: 'PostController'
         })
+        .when('/home-editor', {
+            templateUrl: '/views/home-editor.html',
+            controller: 'HomeEditorController'
+        })
         .otherwise({
             redirectTo: '/'
         });
