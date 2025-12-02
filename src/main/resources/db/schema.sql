@@ -3,6 +3,9 @@ CREATE TABLE IF NOT EXISTS blog_post (
     id SERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     content TEXT NOT NULL,
+    excerpt TEXT,
+    hero_image VARCHAR(255),
+    tags VARCHAR(255),
     author_id INTEGER,
     status VARCHAR(20) DEFAULT 'draft',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -13,10 +16,12 @@ CREATE TABLE IF NOT EXISTS blog_post (
 CREATE TABLE IF NOT EXISTS blog_comment (
     id SERIAL PRIMARY KEY,
     post_id INTEGER NOT NULL,
+    parent_id INTEGER,
     author VARCHAR(100),
     comment_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE
+    FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES blog_comment(id) ON DELETE CASCADE
 );
 
 -- カテゴリテーブル
@@ -24,6 +29,16 @@ CREATE TABLE IF NOT EXISTS blog_category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ユーザーテーブル（認証用）
+CREATE TABLE IF NOT EXISTS blog_user (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+    enabled BOOLEAN NOT NULL DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -50,4 +65,18 @@ CREATE TABLE IF NOT EXISTS post_tag (
     PRIMARY KEY (post_id, tag_id),
     FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES blog_tag(id) ON DELETE CASCADE
+);
+
+-- お問い合わせテーブル
+CREATE TABLE IF NOT EXISTS contact_message (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(200) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'new',
+    reply TEXT,
+    replied_at TIMESTAMP,
+    replied_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

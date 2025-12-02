@@ -9,30 +9,10 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
     
     <!-- Custom CSS -->
-    <style>
-        body {
-            padding-top: 70px;
-        }
-        .main-container {
-            margin-top: 20px;
-        }
-        .search-form {
-            margin-bottom: 20px;
-            padding: 15px;
-            background-color: #f5f5f5;
-            border-radius: 4px;
-        }
-        .action-buttons {
-            margin-bottom: 15px;
-        }
-        .table-container {
-            margin-top: 20px;
-        }
-        .pagination-container {
-            text-align: center;
-            margin-top: 20px;
-        }
-    </style>
+    <link rel="stylesheet" href="/styles/style.css">
+    
+    <!-- Quill Rich Text Editor (CDN) -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 </head>
 <body>
 
@@ -51,8 +31,37 @@
                 <ul class="nav navbar-nav">
                     <li><a href="#!/">ホーム</a></li>
                     <li><a href="#!/screen/blog">記事管理</a></li>
-                    <li><a href="#!/screen/comment">コメント管理</a></li>
-                    <li><a href="#!/screen/category">カテゴリ管理</a></li>
+                    <li><a href="/contact.html"><span class="glyphicon glyphicon-envelope"></span> お問い合わせ</a></li>
+                    <!-- 管理者のみコメント管理を表示 -->
+                    <li ng-if="isAdmin"><a href="#!/screen/comment">コメント管理</a></li>
+                    <!-- 管理者のみお問い合わせ管理を表示 -->
+                    <li ng-if="isAdmin"><a href="#!/screen/contact">お問い合わせ管理</a></li>
+                    <!-- 管理者のみカテゴリ管理を表示 -->
+                    <li ng-if="isAdmin"><a href="#!/screen/category">カテゴリ管理</a></li>
+                    <!-- 管理者のみホーム画面編集を表示 -->
+                    <li ng-if="isAdmin" class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                            設定 <span class="caret"></span>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a href="javascript:void(0)" ng-click="editHomeConfig()">
+                                <span class="glyphicon glyphicon-home"></span> ホーム画面編集
+                            </a></li>
+                            <li><a href="#!/screen/contact">
+                                <span class="glyphicon glyphicon-envelope"></span> お問い合わせ管理
+                            </a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li ng-if="!authenticated"><a href="/register.html"><span class="glyphicon glyphicon-user"></span> 新規登録</a></li>
+                    <li ng-if="!authenticated"><a href="/login.html"><span class="glyphicon glyphicon-log-in"></span> ログイン</a></li>
+                    <li ng-if="authenticated" class="navbar-text">
+                        <span class="glyphicon glyphicon-user"></span> {{ username }} 
+                        <span ng-if="isAdmin" class="label label-danger">管理者</span>
+                        <span ng-if="!isAdmin" class="label label-info">一般</span>
+                    </li>
+                    <li ng-if="authenticated"><a href="javascript:void(0)" ng-click="logout()"><span class="glyphicon glyphicon-log-out"></span> ログアウト</a></li>
                 </ul>
             </div>
         </div>
@@ -77,8 +86,12 @@
     <script src="/scripts/app.js"></script>
     <script src="/scripts/controllers/navigationController.js"></script>
     <script src="/scripts/controllers/homeController.js"></script>
+    <script src="/scripts/controllers/homeEditorController.js"></script>
     <script src="/scripts/controllers/dynamicScreenController.js"></script>
+    <script src="/scripts/controllers/postController.js"></script>
     <script src="/scripts/filters/range.js"></script>
+    <!-- Quill JS -->
+    <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 
 </body>
 </html>

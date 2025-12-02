@@ -12,6 +12,9 @@ public class ScreenDefinition {
     private List<ListColumn> listColumns;
     private List<FormField> formFields;
     private Pagination pagination;
+    private ListLayout listLayout;
+    private DetailLayout detailLayout;
+    private List<Section> sections; // for home page
 
     @Data
     public static class SearchField {
@@ -36,10 +39,123 @@ public class ScreenDefinition {
         private String type;
         private Boolean required;
         private List<String> options;
+        private String accept;      // for file/image input e.g. "image/*"
+        private Integer maxSizeMb;  // max upload size
+        private String uploadEndpoint; // API endpoint for uploading
+        // for multiselect dynamic options
+        private String source; // e.g. "/api/tag/list"
+        private Boolean allowCreate; // allow creating new option via POST
+        private String autoFill; // auto-fill with "username" or other value
+        private Integer rows; // for textarea
     }
 
     @Data
     public static class Pagination {
         private Integer pageSize;
+    }
+
+    @Data
+    public static class ListLayout {
+        private String type; // e.g., "card"
+        private String titleField; // e.g., "title"
+        private String dateField;  // e.g., "created_at"
+        private String excerptField; // e.g., "excerpt"
+        private String imageField;   // e.g., "hero_image"
+        private String tagsField;    // e.g., "tags"
+    }
+
+    @Data
+    public static class DetailLayout {
+        private String titleField;
+        private String dateField;
+        private String imageField;
+        private String tagsField;
+        private String excerptField;
+        private String contentField;
+        private List<String> order;
+        private CommentConfig comments;
+    }
+    
+    @Data
+    public static class CommentConfig {
+        private Boolean enabled;
+        private String tableName;
+        private String foreignKey;
+        private String authorField;
+        private String textField;
+        private String dateField;
+        private Boolean allowAnonymous;
+        private List<FormField> formFields;
+    }
+    
+    @Data
+    public static class Section {
+        private String type;
+        private String heading;
+        private String sourceTable;
+        private Integer limit;
+        private String orderBy;
+        private String orderDirection;
+        private String whereClause;
+        private DisplayFields displayFields;
+        private String linkPattern;
+        
+        // Hero section properties
+        private String style;
+        private List<HeroSlide> slides;
+        private Boolean autoplay;
+        private Integer interval;
+        private String height;
+        private String animation;
+        
+        // Text block properties
+        private String content;
+        private String alignment;
+        private String backgroundColor;
+        private String padding;
+        
+        // Stats section properties
+        private List<StatItem> items;
+        private String layout;
+        
+        // Category grid properties
+        private Integer columns;
+    }
+    
+    @Data
+    public static class HeroSlide {
+        private String image;
+        private String title;
+        private String subtitle;
+        private String buttonText;
+        private String buttonLink;
+        private Overlay overlay;
+    }
+    
+    @Data
+    public static class Overlay {
+        private Boolean enabled;
+        private String color;
+        private Double opacity;
+    }
+    
+    @Data
+    public static class StatItem {
+        private String label;
+        private String sourceTable;
+        private String countWhere;
+        private String icon;
+        private String color;
+    }
+    
+    @Data
+    public static class DisplayFields {
+        private String titleField;
+        private String dateField;
+        private String excerptField;
+        private String imageField;
+        private String tagsField;
+        private String nameField;        // for category/tag name
+        private String descriptionField; // for category/tag description
     }
 }

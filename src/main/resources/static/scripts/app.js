@@ -1,6 +1,13 @@
 // AngularJSアプリケーションの初期化
 var blogApp = angular.module('blogApp', ['ngRoute']);
 
+// HTMLを信頼するフィルター（リッチテキスト表示用）
+blogApp.filter('trustAsHtml', ['$sce', function($sce) {
+    return function(html) {
+        return $sce.trustAsHtml(html);
+    };
+}]);
+
 // ルーティング設定
 blogApp.config(['$routeProvider', '$locationProvider', function($routeProvider, $locationProvider) {
     $routeProvider
@@ -11,6 +18,14 @@ blogApp.config(['$routeProvider', '$locationProvider', function($routeProvider, 
         .when('/screen/:screenName', {
             templateUrl: '/views/dynamicScreen.html',
             controller: 'DynamicScreenController'
+        })
+        .when('/post/:id', {
+            templateUrl: '/views/post.html',
+            controller: 'PostController'
+        })
+        .when('/home-editor', {
+            templateUrl: '/views/home-editor.html',
+            controller: 'HomeEditorController'
         })
         .otherwise({
             redirectTo: '/'

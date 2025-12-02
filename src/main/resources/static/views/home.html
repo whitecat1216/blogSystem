@@ -1,30 +1,225 @@
 <div class="home-page">
-    <div class="jumbotron">
-        <h1>{{ message }}</h1>
-        <p>{{ description }}</p>
+    <div ng-if="loading" class="text-center" style="padding: 50px 0;">
+        <p><span class="glyphicon glyphicon-refresh spinning"></span> 読み込み中...</p>
     </div>
     
-    <div class="row">
-        <div class="col-md-4" ng-repeat="feature in features">
-            <div class="panel panel-primary">
-                <div class="panel-heading">
-                    <h3 class="panel-title">{{ feature.title }}</h3>
-                </div>
-                <div class="panel-body">
-                    <p>{{ feature.description }}</p>
-                    <a href="{{ feature.link }}" class="btn btn-primary">開く</a>
+    <div ng-if="error" class="alert alert-danger">
+        {{ error }}
+    </div>
+    
+    <!-- 各セクションを動的にレンダリング -->
+    <div ng-if="!loading && !error && definition">
+        <div ng-repeat="section in definition.sections" class="home-section">
+            
+            <!-- ヒーローセクション（スライドショー） -->
+            <div ng-if="section.type === 'hero'" class="hero-section" 
+                 ng-style="{'height': section.height || '500px'}">
+                <div class="hero-slider">
+                    <div ng-repeat="slide in section.slides" 
+                         class="hero-slide"
+                         ng-class="{'active': heroSlides[$parent.$index].current === $index}"
+                         ng-style="{'background-image': 'url(' + slide.image + ')'}">
+                        
+                        <!-- オーバーレイ -->
+                        <div ng-if="slide.overlay && slide.overlay.enabled" 
+                             class="hero-overlay"
+                             ng-style="{
+                                 'background-color': slide.overlay.color,
+                                 'opacity': slide.overlay.opacity
+                             }"></div>
+                        
+                        <!-- コンテンツ -->
+                        <div class="hero-content">
+                            <div class="container">
+                                <h1 class="hero-title" ng-if="slide.title">{{ slide.title }}</h1>
+                                <p class="hero-subtitle" ng-if="slide.subtitle">{{ slide.subtitle }}</p>
+                                <a ng-if="slide.buttonText && slide.buttonLink" 
+                                   href="{{ slide.buttonLink }}" 
+                                   class="btn btn-primary btn-lg hero-button">
+                                    {{ slide.buttonText }}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- スライドショーコントロール -->
+                    <div ng-if="section.slides.length > 1" class="hero-controls">
+                        <button class="hero-prev" ng-click="prevSlide($index, section.slides.length)">
+                            <span class="glyphicon glyphicon-chevron-left"></span>
+                        </button>
+                        <button class="hero-next" ng-click="nextSlide($index, section.slides.length)">
+                            <span class="glyphicon glyphicon-chevron-right"></span>
+                        </button>
+                        
+                        <!-- インジケーター -->
+                        <div class="hero-indicators">
+                            <span ng-repeat="slide in section.slides"
+                                  ng-class="{'active': heroSlides[$parent.$index].current === $index}"
+                                  ng-click="goToSlide($parent.$index, $index)">
+                            </span>
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <!-- テキストブロック -->
+            <div ng-if="section.type === 'text-block'" 
+                 class="text-block-section"
+                 ng-style="{
+                     'background-color': section.backgroundColor,
+                     'padding': section.padding,
+                     'text-align': section.alignment
+                 }">
+                <div class="container">
+                    <h2 ng-if="section.heading">{{ section.heading }}</h2>
+                    <p ng-bind-html="section.content | trustAsHtml"></p>
+                </div>
+            </div>
+            
+            <!-- 統計情報 -->
+            <div ng-if="section.type === 'stats'" 
+                 class="stats-section"
+                 ng-style="{
+                     'background-color': section.backgroundColor,
+                     'padding': section.padding
+                 }">
+                <div class="container">
+                    <div class="stats-grid" ng-class="'stats-' + (section.layout || 'horizontal')">
+                        <div ng-repeat="item in section.items" class="stat-item">
+                            <div class="stat-icon" ng-style="{'color': item.color}">
+                                <span class="glyphicon" ng-class="item.icon"></span>
+                            </div>
+                            <div class="stat-value">{{ sectionData[$parent.$index][$index] || 0 }}</div>
+                            <div class="stat-label">{{ item.label }}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 最新記事 -->
+            <div ng-if="section.type === 'recent-posts'" class="recent-posts-section">
+                <div class="container">
+                    <h2 class="section-heading">
+                        <span class="glyphicon glyphicon-file"></span> {{ section.heading }}
+                    </h2>
+                    
+                    <div ng-if="sectionData[$index].length === 0" class="alert alert-info">
+                        まだ記事が投稿されていません。
+                    </div>
+                    
+                    <!-- グリッドレイアウト -->
+                    <div ng-if="section.layout === 'grid'" class="row posts-grid">
+                        <div ng-repeat="post in sectionData[$index]" 
+                             class="col-md-{{ 12 / (section.columns || 3) }} col-sm-6">
+                            <div class="post-card">
+                                <div class="post-card-image" ng-if="post[section.displayFields.imageField]">
+                                    <img ng-src="{{ post[section.displayFields.imageField] }}" 
+                                         alt="{{ post[section.displayFields.titleField] }}">
+                                </div>
+                                <div class="post-card-body">
+                                    <h3 class="post-card-title">
+                                        <a href="{{ applyLinkPattern(section.linkPattern, post) }}">
+                                            {{ post[section.displayFields.titleField] }}
+                                        </a>
+                                    </h3>
+                                    <p class="post-card-date">
+                                        <span class="glyphicon glyphicon-calendar"></span>
+                                        {{ post[section.displayFields.dateField] | date:'yyyy/MM/dd' }}
+                                    </p>
+                                    <p class="post-card-excerpt" ng-if="post[section.displayFields.excerptField]">
+                                        {{ post[section.displayFields.excerptField] }}
+                                    </p>
+                                    <div ng-if="post[section.displayFields.tagsField]" class="post-card-tags">
+                                        <span class="label label-info" 
+                                              ng-repeat="tag in post[section.displayFields.tagsField].split(',')">
+                                            {{ tag }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- リストレイアウト -->
+                    <div ng-if="!section.layout || section.layout === 'list'" class="posts-list">
+                        <div ng-repeat="post in sectionData[$index]" class="post-list-item panel panel-default">
+                            <div class="panel-body">
+                                <div class="row">
+                                    <div class="col-md-3" ng-if="post[section.displayFields.imageField]">
+                                        <img ng-src="{{ post[section.displayFields.imageField] }}" 
+                                             alt="{{ post[section.displayFields.titleField] }}"
+                                             class="img-responsive img-thumbnail">
+                                    </div>
+                                    <div ng-class="post[section.displayFields.imageField] ? 'col-md-9' : 'col-md-12'">
+                                        <h3 style="margin-top: 0;">
+                                            <a href="{{ applyLinkPattern(section.linkPattern, post) }}">
+                                                {{ post[section.displayFields.titleField] }}
+                                            </a>
+                                        </h3>
+                                        <p class="text-muted">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                            {{ post[section.displayFields.dateField] | date:'yyyy年MM月dd日' }}
+                                            <span ng-if="post[section.displayFields.tagsField]" style="margin-left: 15px;">
+                                                <span class="glyphicon glyphicon-tags"></span>
+                                                <span class="label label-info" 
+                                                      ng-repeat="tag in post[section.displayFields.tagsField].split(',')">
+                                                    {{ tag }}
+                                                </span>
+                                            </span>
+                                        </p>
+                                        <p ng-if="post[section.displayFields.excerptField]">
+                                            {{ post[section.displayFields.excerptField] }}
+                                        </p>
+                                        <a href="{{ applyLinkPattern(section.linkPattern, post) }}" 
+                                           class="btn btn-primary btn-sm">
+                                            続きを読む <span class="glyphicon glyphicon-chevron-right"></span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center" style="margin-top: 20px;">
+                        <a href="#!/screen/blog" class="btn btn-default">
+                            すべての記事を見る <span class="glyphicon glyphicon-arrow-right"></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- カテゴリグリッド -->
+            <div ng-if="section.type === 'category-grid'" 
+                 class="category-grid-section"
+                 ng-style="{
+                     'background-color': section.backgroundColor,
+                     'padding': section.padding
+                 }">
+                <div class="container">
+                    <h2 class="section-heading" ng-if="section.heading">{{ section.heading }}</h2>
+                    <div class="row">
+                        <div ng-repeat="category in sectionData[$index]" 
+                             class="col-md-{{ 12 / (section.columns || 3) }} col-sm-6">
+                            <a href="{{ applyLinkPattern(section.linkPattern, category) }}" 
+                               class="category-card">
+                                <div class="category-card-body">
+                                    <h3>{{ category[section.displayFields.nameField] }}</h3>
+                                    <p ng-if="section.displayFields.descriptionField">
+                                        {{ category[section.displayFields.descriptionField] }}
+                                    </p>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- カスタムHTML -->
+            <div ng-if="section.type === 'custom-html'" 
+                 class="custom-html-section"
+                 ng-bind-html="section.content | trustAsHtml">
+            </div>
+            
         </div>
-    </div>
-    
-    <div class="alert alert-info" role="alert">
-        <h4>システム情報</h4>
-        <ul>
-            <li>Spring Boot 3.2.x + Doma 2.54.x</li>
-            <li>AngularJS 1.8.2</li>
-            <li>PostgreSQL データベース</li>
-            <li>JSON定義による画面自動生成</li>
-        </ul>
     </div>
 </div>

@@ -1,0 +1,41 @@
+{
+  "title": "ブログ記事",
+  "tableName": "blog_post",
+  "searchFields": [],
+  "listColumns": [],
+  "formFields": [],
+  "detailLayout": {
+    "titleField": "title",
+    "dateField": "created_at",
+    "imageField": "hero_image",
+    "tagsField": "tags",
+    "excerptField": "excerpt",
+    "contentField": "content",
+    "order": ["title", "date", "image", "tags", "excerpt", "content"],
+    "comments": {
+      "enabled": true,
+      "tableName": "blog_comment",
+      "foreignKey": "post_id",
+      "authorField": "author",
+      "textField": "comment_text",
+      "dateField": "created_at",
+      "allowAnonymous": false,
+      "formFields": [
+        {
+          "key": "author",
+          "label": "投稿者",
+          "type": "text",
+          "required": true,
+          "autoFill": "username"
+        },
+        {
+          "key": "comment_text",
+          "label": "コメント",
+          "type": "textarea",
+          "required": true,
+          "rows": 4
+        }
+      ]
+    }
+  }
+}

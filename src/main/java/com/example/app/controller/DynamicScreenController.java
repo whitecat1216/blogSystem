@@ -5,10 +5,20 @@ import com.example.app.service.DynamicScreenService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.jsoup.Jsoup;
+import org.jsoup.safety.Safelist;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/screen")
@@ -90,12 +100,57 @@ public class DynamicScreenController {
     public ResponseEntity<Void> createRecord(
             @PathVariable String screenName,
             @RequestBody Map<String, Object> data) {
-        
         try {
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
-            screenService.createRecord(definition.getTableName(), data);
+            // sanitize richtext fields (e.g., content)
+            sanitizeRichText(definition, data);
+            // categoryIds (multiselect) handling for blog_post
+            List<Integer> categoryIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("categoryIds")) {
+                Object raw = data.get("categoryIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        categoryIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("categoryIds"); // not a direct column
+            }
+            // tagIds (multiselect) handling for blog_post
+            List<Integer> tagIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
+                Object raw = data.get("tagIds");
+                if (raw instanceof List<?>) {
+                    try {
+                        tagIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                    } catch (Exception ignored) {}
+                }
+                data.remove("tagIds"); // not a direct column
+            }
+            // formFields に存在するキーのみを許可（安全のため）
+            Map<String,Object> filtered = new HashMap<>();
+            if (definition.getFormFields() != null) {
+                for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                    String key = f.getKey();
+                    if (data.containsKey(key)) {
+                        filtered.put(key, data.get(key));
+                    }
+                }
+            }
+            // id や内部フィールドを念のため除外
+            filtered.remove("id");
+            filtered.entrySet().removeIf(e -> e.getKey().startsWith("_"));
+
+            int newId = screenService.createRecordReturnId(definition.getTableName(), filtered);
+            if (categoryIds != null) {
+                screenService.updatePostCategories(newId, categoryIds);
+            }
+            if (tagIds != null) {
+                screenService.updatePostTags(newId, tagIds);
+            }
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            e.printStackTrace();
+            System.err.println("Create error: " + e.getMessage());
             return ResponseEntity.badRequest().build();
         }
     }
@@ -105,14 +160,99 @@ public class DynamicScreenController {
             @PathVariable String screenName,
             @PathVariable int id,
             @RequestBody Map<String, Object> data) {
-        
         try {
+            System.out.println("Update request for " + screenName + " id=" + id);
+            System.out.println("Data received: " + data);
+            
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
-            screenService.updateRecord(definition.getTableName(), id, data);
+            sanitizeRichText(definition, data);
+            
+            // categoryIds (multiselect) handling for blog_post
+            List<Integer> categoryIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("categoryIds")) {
+                Object raw = data.get("categoryIds");
+                System.out.println("categoryIds raw value: " + raw);
+                if (raw instanceof List<?>) {
+                    try {
+                        categoryIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                        System.out.println("Parsed categoryIds: " + categoryIds);
+                    } catch (Exception e) {
+                        System.err.println("Failed to parse categoryIds: " + e.getMessage());
+                    }
+                }
+                data.remove("categoryIds");
+            }
+            
+            // tagIds (multiselect) handling for blog_post
+            List<Integer> tagIds = null;
+            if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
+                Object raw = data.get("tagIds");
+                System.out.println("tagIds raw value: " + raw);
+                if (raw instanceof List<?>) {
+                    try {
+                        tagIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
+                        System.out.println("Parsed tagIds: " + tagIds);
+                    } catch (Exception e) {
+                        System.err.println("Failed to parse tagIds: " + e.getMessage());
+                    }
+                }
+                data.remove("tagIds");
+            }
+            
+            System.out.println("Data after removing multiselect fields: " + data);
+            // 許可されたフィールドのみを更新
+            Map<String,Object> filtered = new HashMap<>();
+            if (definition.getFormFields() != null) {
+                for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                    String key = f.getKey();
+                    if (data.containsKey(key)) {
+                        filtered.put(key, data.get(key));
+                    }
+                }
+            }
+            // id や内部フィールドを念のため除外
+            filtered.remove("id");
+            filtered.entrySet().removeIf(e -> e.getKey().startsWith("_"));
+
+            // データベース更新
+            if (!filtered.isEmpty()) {
+                screenService.updateRecord(definition.getTableName(), id, filtered);
+            }
+            
+            // カテゴリ紐付け更新
+            if ("blog_post".equals(definition.getTableName())) {
+                if (categoryIds != null) {
+                    screenService.updatePostCategories(id, categoryIds);
+                }
+                if (tagIds != null) {
+                    screenService.updatePostTags(id, tagIds);
+                }
+            }
+            
+            System.out.println("Update completed successfully");
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            e.printStackTrace();
+            System.err.println("Update error for " + screenName + " id=" + id + ": " + e.getMessage());
+            return ResponseEntity.status(500).build();
         }
+    }
+
+    private void sanitizeRichText(ScreenDefinition definition, Map<String,Object> data){
+        try {
+            if (definition.getFormFields() == null) return;
+            for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                if ("richtext".equalsIgnoreCase(f.getType())) {
+                    Object v = data.get(f.getKey());
+                    if (v != null) {
+                        // 見出しタグ(h1,h2,h3)も許可した拡張サニタイズ
+                        Safelist allowed = Safelist.relaxed().addTags("h1","h2","h3");
+                        String cleaned = Jsoup.clean(v.toString(), allowed);
+                        data.put(f.getKey(), cleaned);
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     @DeleteMapping("/{screenName}/data/{id}")
@@ -126,6 +266,32 @@ public class DynamicScreenController {
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @PostMapping("/upload")
+    public ResponseEntity<Map<String, Object>> uploadFile(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().build();
+            }
+            String original = file.getOriginalFilename();
+            String ext = "";
+            if (original != null && original.contains(".")) {
+                ext = original.substring(original.lastIndexOf('.'));
+            }
+            String dateDir = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+            Path uploadRoot = Paths.get("src", "main", "resources", "static", "uploads", dateDir);
+            Files.createDirectories(uploadRoot);
+            String filename = UUID.randomUUID().toString().replace("-", "") + ext;
+            Path target = uploadRoot.resolve(filename);
+            file.transferTo(target.toFile());
+            String url = "/uploads/" + dateDir + "/" + filename;
+            Map<String, Object> resp = new HashMap<>();
+            resp.put("url", url);
+            return ResponseEntity.ok(resp);
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

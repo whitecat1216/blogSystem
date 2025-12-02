@@ -39,34 +39,65 @@
     
     <!-- アクションボタン -->
     <div class="action-buttons" ng-if="!editMode">
-        <button class="btn btn-success" ng-click="createNew()">
+        <button class="btn btn-success" ng-if="isAdmin" ng-click="createNew()">
             <span class="glyphicon glyphicon-plus"></span> 新規作成
         </button>
     </div>
     
-    <!-- データ一覧テーブル -->
-    <div class="table-container" ng-if="!editMode">
-        <table class="table table-striped table-bordered">
-            <thead>
-                <tr>
-                    <th ng-repeat="column in definition.listColumns">{{ column.label }}</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr ng-repeat="record in records">
-                    <td ng-repeat="column in definition.listColumns">{{ record[column.key] }}</td>
-                    <td>
-                        <button class="btn btn-sm btn-info" ng-click="editRecord(record)">
-                            <span class="glyphicon glyphicon-edit"></span> 編集
-                        </button>
-                        <button class="btn btn-sm btn-danger" ng-click="deleteRecord(record)">
-                            <span class="glyphicon glyphicon-trash"></span> 削除
-                        </button>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <!-- データ一覧（カードレイアウト優先） -->
+    <div class="list-container" ng-if="!editMode">
+        <div ng-if="definition.listLayout && definition.listLayout.type === 'card'">
+            <div class="card-list">
+                <div class="card-item" ng-repeat="record in records">
+                    <div class="card-thumb" ng-if="definition.listLayout.imageField && record[definition.listLayout.imageField]">
+                        <img ng-src="{{ record[definition.listLayout.imageField] }}" alt="thumbnail" />
+                    </div>
+                    <div class="card-content">
+                                                <h3 class="card-title">
+                                                    <a href="#!/post/{{record.id}}">{{ record[definition.listLayout.titleField] }}</a>
+                                                </h3>
+                        <div class="card-date" ng-if="definition.listLayout.dateField">{{ record[definition.listLayout.dateField] | date:'yyyy/MM/dd' }}</div>
+                        <p class="card-excerpt" ng-if="definition.listLayout.excerptField">{{ record[definition.listLayout.excerptField] }}</p>
+                        <div class="card-tags" ng-if="definition.listLayout.tagsField && record[definition.listLayout.tagsField]">{{ record[definition.listLayout.tagsField] }}</div>
+                        <div class="card-comments" ng-if="record._commentCount !== undefined" style="margin-top: 8px; color: #5bc0de;">
+                            <span class="glyphicon glyphicon-comment"></span> 
+                            <span style="font-weight: 600;">{{ record._commentCount }}</span> コメント
+                        </div>
+                        <div class="card-actions">
+                            <button class="btn btn-sm btn-info" ng-if="isAdmin" ng-click="editRecord(record)">
+                                <span class="glyphicon glyphicon-edit"></span> 編集
+                            </button>
+                            <button class="btn btn-sm btn-danger" ng-if="isAdmin" ng-click="deleteRecord(record)">
+                                <span class="glyphicon glyphicon-trash"></span> 削除
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div ng-if="!definition.listLayout || definition.listLayout.type !== 'card'">
+            <table class="table table-striped table-bordered">
+                <thead>
+                    <tr>
+                        <th ng-repeat="column in definition.listColumns">{{ column.label }}</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="record in records">
+                        <td ng-repeat="column in definition.listColumns">{{ record[column.key] }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" ng-if="isAdmin" ng-click="editRecord(record)">
+                                <span class="glyphicon glyphicon-edit"></span> 編集
+                            </button>
+                            <button class="btn btn-sm btn-danger" ng-if="isAdmin" ng-click="deleteRecord(record)">
+                                <span class="glyphicon glyphicon-trash"></span> 削除
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
         
         <!-- ページネーション -->
         <div class="pagination-container" ng-if="totalPages > 1">
@@ -125,10 +156,35 @@
                     <option value="">選択してください</option>
                     <option ng-repeat="option in field.options" value="{{ option }}">{{ option }}</option>
                 </select>
+                <!-- マルチセレクト -->
+                <div ng-if="field.type === 'multiselect'">
+                    <select multiple class="form-control" ng-model="currentRecord[field.key]"
+                            ng-options="opt.id as opt.name for opt in field._options"></select>
+                    <div class="add-option" ng-if="field.allowCreate" style="margin-top:6px;">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="新規タグ" ng-model="field._newName">
+                            <span class="input-group-btn">
+                                <button type="button" class="btn btn-default" ng-click="addNewOption(field, field._newName)">追加</button>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <!-- リッチテキスト（Quill） -->
+                <div ng-if="field.type === 'richtext'">
+                    <div class="quill-editor" id="quill_{{field.key}}" style="height:300px;"></div>
+                </div>
+                <div ng-if="field.type === 'file'">
+                    <input type="file" accept="{{ field.accept || '*/*' }}"
+                           onchange="angular.element(this).scope().onFileSelected(field, this.files)">
+                    <div class="preview" ng-if="currentRecord[field.key]" style="margin-top:8px;">
+                        <img ng-if="field.accept && field.accept.indexOf('image') !== -1" ng-src="{{ currentRecord[field.key] }}" style="max-width:200px;" />
+                        <a ng-if="!field.accept || field.accept.indexOf('image') === -1" ng-href="{{ currentRecord[field.key] }}" target="_blank">アップロード済みファイル</a>
+                    </div>
+                </div>
             </div>
             
             <div class="form-group">
-                <button type="submit" class="btn btn-primary">
+                <button type="submit" class="btn btn-primary" ng-if="isAdmin">
                     <span class="glyphicon glyphicon-save"></span> 保存
                 </button>
                 <button type="button" class="btn btn-default" ng-click="cancel()">

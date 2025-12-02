@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja" ng-app="blogApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新規登録 - ブログシステム</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/styles/style.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+</head>
+<body class="register-page" ng-controller="RegisterController">
+    <div class="register-container">
+        <div class="auth-header">
+            <h2>新規登録</h2>
+            <p>アカウントを作成してブログシステムを利用できます</p>
+        </div>
+        
+        <div ng-show="message.text" class="alert" ng-class="{'alert-success': message.success, 'alert-danger': !message.success}">
+            {{ message.text }}
+        </div>
+        
+        <form ng-submit="register()" name="registerForm" class="auth-form">
+            <div class="form-group">
+                <label for="username">ユーザー名 *</label>
+                <input type="text" class="form-control" id="username" ng-model="user.username" required 
+                       placeholder="ユーザー名を入力（英数字推奨）">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">パスワード *</label>
+                <input type="password" class="form-control" id="password" ng-model="user.password" required 
+                       minlength="4" placeholder="パスワードを入力（4文字以上）">
+            </div>
+            
+            <div class="form-group">
+                <label for="confirmPassword">パスワード確認 *</label>
+                <input type="password" class="form-control" id="confirmPassword" ng-model="user.confirmPassword" required 
+                       placeholder="パスワードを再入力">
+                <div ng-show="user.password && user.confirmPassword && user.password !== user.confirmPassword" class="text-danger" style="margin-top: 5px;">
+                    パスワードが一致しません
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label>権限 *</label>
+                <div class="role-description">
+                    アカウントの権限レベルを選択してください
+                </div>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" name="role" value="USER" ng-model="user.role" required>
+                        <span class="role-info">
+                            <div class="role-title">👤 一般ユーザー</div>
+                            <div class="role-description">記事とコメントの閲覧・投稿が可能です</div>
+                        </span>
+                    </label>
+                    
+                    <label>
+                        <input type="radio" name="role" value="ADMIN" ng-model="user.role">
+                        <span class="role-info">
+                            <div class="role-title">👑 管理者</div>
+                            <div class="role-description">記事の作成・編集・削除、タグ管理が可能です</div>
+                        </span>
+                    </label>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-auth" 
+                    ng-disabled="registerForm.$invalid || (user.password !== user.confirmPassword) || loading">
+                {{ loading ? '登録中...' : '登録' }}
+            </button>
+        </form>
+        
+        <div class="auth-link">
+            既にアカウントをお持ちの方は <a href="/login.html">ログイン</a>
+        </div>
+        
+        <div class="auth-link" style="margin-top: 10px;">
+            <a href="/">トップページに戻る</a>
+        </div>
+    </div>
+
+    <script>
+        var app = angular.module('blogApp', []);
+        
+        app.controller('RegisterController', ['$scope', '$http', function($scope, $http) {
+            $scope.user = {
+                username: '',
+                password: '',
+                confirmPassword: '',
+                role: 'USER'
+            };
+            
+            $scope.message = {
+                text: '',
+                success: false
+            };
+            
+            $scope.loading = false;
+            
+            $scope.register = function() {
+                if ($scope.user.password !== $scope.user.confirmPassword) {
+                    $scope.message = {
+                        text: 'パスワードが一致しません',
+                        success: false
+                    };
+                    return;
+                }
+                
+                $scope.loading = true;
+                $scope.message = { text: '', success: false };
+                
+                $http.post('/api/user/register', {
+                    username: $scope.user.username,
+                    password: $scope.user.password,
+                    role: $scope.user.role
+                }).then(function(response) {
+                    $scope.loading = false;
+                    $scope.message = {
+                        text: response.data.message,
+                        success: response.data.success
+                    };
+                    
+                    if (response.data.success) {
+                        // 登録成功後3秒でログインページへリダイレクト
+                        setTimeout(function() {
+                            window.location.href = '/login.html';
+                        }, 2000);
+                    }
+                }).catch(function(error) {
+                    $scope.loading = false;
+                    $scope.message = {
+                        text: error.data && error.data.message ? error.data.message : '登録に失敗しました',
+                        success: false
+                    };
+                });
+            };
+        }]);
+    </script>
+</body>
+</html>

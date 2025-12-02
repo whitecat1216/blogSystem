@@ -1,0 +1,94 @@
+{
+  "title": "お問い合わせ管理",
+  "tableName": "contact_message",
+  "searchFields": [
+    {
+      "key": "status",
+      "label": "ステータス",
+      "type": "select",
+      "options": ["new", "replied", "archived"]
+    },
+    {
+      "key": "email",
+      "label": "メールアドレス",
+      "type": "text",
+      "placeholder": "メールアドレスで検索"
+    }
+  ],
+  "listColumns": [
+    {
+      "key": "id",
+      "label": "ID",
+      "sortable": true
+    },
+    {
+      "key": "name",
+      "label": "名前",
+      "sortable": true
+    },
+    {
+      "key": "email",
+      "label": "メールアドレス",
+      "sortable": false
+    },
+    {
+      "key": "subject",
+      "label": "件名",
+      "sortable": true
+    },
+    {
+      "key": "status",
+      "label": "ステータス",
+      "sortable": true
+    },
+    {
+      "key": "created_at",
+      "label": "受信日時",
+      "sortable": true
+    }
+  ],
+  "formFields": [
+    {
+      "key": "name",
+      "label": "名前",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "email",
+      "label": "メールアドレス",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "subject",
+      "label": "件名",
+      "type": "text",
+      "required": true
+    },
+    {
+      "key": "message",
+      "label": "お問い合わせ内容",
+      "type": "textarea",
+      "rows": 8,
+      "required": true
+    },
+    {
+      "key": "status",
+      "label": "ステータス",
+      "type": "select",
+      "options": ["new", "replied", "archived"],
+      "required": true
+    },
+    {
+      "key": "reply",
+      "label": "返信内容",
+      "type": "textarea",
+      "rows": 8,
+      "required": false
+    }
+  ],
+  "pagination": {
+    "pageSize": 20
+  }
+}

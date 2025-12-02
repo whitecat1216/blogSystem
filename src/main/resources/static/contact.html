@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html ng-app="contactApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>お問い合わせ - ブログシステム</title>
+    
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/styles/style.css">
+</head>
+<body>
+
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/app/index.html">ブログシステム</a>
+            </div>
+            <div class="collapse navbar-collapse" id="myNavbar">
+                <ul class="nav navbar-nav">
+                    <li><a href="/app/index.html">ホーム</a></li>
+                    <li><a href="/app/index.html#!/screen/blog">記事一覧</a></li>
+                    <li class="active"><a href="/contact.html">お問い合わせ</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <div class="container main-container" ng-controller="ContactFormController">
+        <div class="row">
+            <div class="col-md-8 col-md-offset-2">
+                <div class="page-header">
+                    <h1>
+                        <span class="glyphicon glyphicon-envelope"></span> お問い合わせ
+                    </h1>
+                    <p class="lead">ご質問・ご意見・ご要望などございましたら、お気軽にお問い合わせください。</p>
+                </div>
+                
+                <!-- 成功メッセージ -->
+                <div ng-if="success" class="alert alert-success">
+                    <span class="glyphicon glyphicon-ok-circle"></span>
+                    <strong>送信完了</strong><br>
+                    お問い合わせありがとうございます。内容を確認次第、ご返信させていただきます。
+                </div>
+                
+                <!-- エラーメッセージ -->
+                <div ng-if="error" class="alert alert-danger">
+                    <span class="glyphicon glyphicon-exclamation-sign"></span>
+                    {{ error }}
+                </div>
+                
+                <!-- フォーム -->
+                <div ng-if="!success" class="panel panel-default">
+                    <div class="panel-body">
+                        <form name="contactForm" ng-submit="submitContact()" novalidate>
+                            <div class="form-group" ng-class="{'has-error': contactForm.name.$invalid && contactForm.name.$touched}">
+                                <label for="name">お名前 <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="name" 
+                                       name="name"
+                                       ng-model="contact.name" 
+                                       required
+                                       placeholder="山田太郎">
+                                <span class="help-block" ng-show="contactForm.name.$invalid && contactForm.name.$touched">
+                                    お名前は必須です
+                                </span>
+                            </div>
+                            
+                            <div class="form-group" ng-class="{'has-error': contactForm.email.$invalid && contactForm.email.$touched}">
+                                <label for="email">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       id="email" 
+                                       name="email"
+                                       ng-model="contact.email" 
+                                       required
+                                       placeholder="example@example.com">
+                                <span class="help-block" ng-show="contactForm.email.$invalid && contactForm.email.$touched">
+                                    有効なメールアドレスを入力してください
+                                </span>
+                            </div>
+                            
+                            <div class="form-group" ng-class="{'has-error': contactForm.subject.$invalid && contactForm.subject.$touched}">
+                                <label for="subject">件名 <span class="text-danger">*</span></label>
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="subject" 
+                                       name="subject"
+                                       ng-model="contact.subject" 
+                                       required
+                                       placeholder="お問い合わせの件名">
+                                <span class="help-block" ng-show="contactForm.subject.$invalid && contactForm.subject.$touched">
+                                    件名は必須です
+                                </span>
+                            </div>
+                            
+                            <div class="form-group" ng-class="{'has-error': contactForm.message.$invalid && contactForm.message.$touched}">
+                                <label for="message">お問い合わせ内容 <span class="text-danger">*</span></label>
+                                <textarea class="form-control" 
+                                          id="message" 
+                                          name="message"
+                                          ng-model="contact.message" 
+                                          rows="8" 
+                                          required
+                                          placeholder="お問い合わせ内容をご記入ください"></textarea>
+                                <span class="help-block" ng-show="contactForm.message.$invalid && contactForm.message.$touched">
+                                    お問い合わせ内容は必須です
+                                </span>
+                            </div>
+                            
+                            <div class="form-group">
+                                <button type="submit" 
+                                        class="btn btn-primary btn-lg btn-block" 
+                                        ng-disabled="submitting || contactForm.$invalid">
+                                    <span class="glyphicon glyphicon-send"></span>
+                                    {{ submitting ? '送信中...' : '送信する' }}
+                                </button>
+                            </div>
+                            
+                            <p class="text-muted small">
+                                <span class="glyphicon glyphicon-info-sign"></span>
+                                お送りいただいた個人情報は、お問い合わせの対応のみに使用いたします。
+                            </p>
+                        </form>
+                    </div>
+                </div>
+                
+                <div ng-if="success" class="text-center" style="margin-top: 30px;">
+                    <a href="/app/index.html" class="btn btn-default">
+                        <span class="glyphicon glyphicon-home"></span> ホームに戻る
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    
+    <!-- Contact App Script -->
+    <script>
+        var contactApp = angular.module('contactApp', []);
+        
+        contactApp.controller('ContactFormController', ['$scope', '$http', function($scope, $http) {
+            $scope.contact = {};
+            $scope.submitting = false;
+            $scope.success = false;
+            $scope.error = null;
+            
+            $scope.submitContact = function() {
+                if ($scope.contactForm.$invalid) {
+                    return;
+                }
+                
+                $scope.submitting = true;
+                $scope.error = null;
+                
+                var data = angular.copy($scope.contact);
+                data.status = 'new';
+                
+                $http.post('/api/contact/submit', data)
+                    .then(function(resp) {
+                        $scope.success = true;
+                        $scope.contact = {};
+                        $scope.contactForm.$setPristine();
+                        $scope.contactForm.$setUntouched();
+                        
+                        // ページトップにスクロール
+                        window.scrollTo(0, 0);
+                    })
+                    .catch(function(err) {
+                        console.error('Failed to submit contact:', err);
+                        $scope.error = 'お問い合わせの送信に失敗しました。しばらくしてから再度お試しください。';
+                    })
+                    .finally(function() {
+                        $scope.submitting = false;
+                    });
+            };
+        }]);
+    </script>
+
+</body>
+</html>

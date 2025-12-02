@@ -1,0 +1,28 @@
+<div class="comment-item" style="padding: 20px; margin-bottom: 20px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+  <div class="comment-header" style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0;">
+    <span class="glyphicon glyphicon-user" style="color: #5bc0de; margin-right: 5px;"></span>
+    <strong class="comment-author" style="color: #333; margin-right: 15px; font-size: 1.05em;">{{ comment[dl.comments.authorField] }}</strong>
+    <span class="glyphicon glyphicon-time" style="color: #999; font-size: 0.85em; margin-right: 5px;"></span>
+    <span class="comment-date text-muted" style="font-size: 0.9em;">{{ comment[dl.comments.dateField] | date:'yyyy年MM月dd日 HH:mm' }}</span>
+  </div>
+  <div class="comment-body" style="color: #555; white-space: pre-wrap; line-height: 1.6; font-size: 0.95em; margin-bottom: 10px;">
+    <!-- 返信先表示 -->
+    <div ng-if="comment.parent_id && comment._parentAuthor" style="background: #f0f8ff; padding: 5px 10px; margin-bottom: 10px; border-left: 3px solid #5bc0de; font-size: 0.9em; color: #666;">
+      <span class="glyphicon glyphicon-share-alt" style="margin-right: 5px;"></span>
+      <strong style="color: #5bc0de;">@{{ comment._parentAuthor }}</strong> への返信
+    </div>
+    {{ comment[dl.comments.textField] }}
+  </div>
+  
+  <!-- 返信ボタン -->
+  <div class="comment-actions" ng-if="authenticated" style="margin-top: 10px;">
+    <button class="btn btn-xs btn-default" ng-click="startReply(comment)">
+      <span class="glyphicon glyphicon-share-alt"></span> 返信
+    </button>
+  </div>
+  
+  <!-- 返信（子コメント） -->
+  <div ng-if="comment.replies && comment.replies.length > 0" style="margin-top: 20px; margin-left: 30px; padding-left: 15px; border-left: 3px solid #e0e0e0;">
+    <div ng-repeat="comment in comment.replies" ng-include="'views/comment-item.html'"></div>
+  </div>
+</div>
