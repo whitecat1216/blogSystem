@@ -122,13 +122,53 @@ public interface BlogPostDao {
 
 ## 🚀 セットアップと実行
 
-### 前提条件
+### 実行方法の選択
+
+以下の2つの方法があります：
+
+1. **Docker を使用する方法（推奨）** - 環境構築が簡単
+2. **ローカル環境で実行する方法** - 開発時に便利
+
+### 方法1: Docker を使用する（推奨）
+
+#### 前提条件
+- **Docker Desktop** がインストールされていること
+
+#### クイックスタート
+
+```powershell
+# 1. プロジェクトディレクトリに移動
+cd app
+
+# 2. Dockerコンテナを起動
+docker compose up -d
+
+# 3. ブラウザでアクセス
+# http://localhost:8080
+```
+
+詳細は **[Docker セットアップ手順書](docs/docker-setup.md)** を参照してください。
+
+### 方法2: ローカル環境で実行する
+
+#### 前提条件
 - **Java 17以上** がインストールされていること
+- **PostgreSQL** がインストールされ、起動していること
 - **Gradle** がインストールされていること（または同梱のGradle Wrapperを使用）
 
-### 実行手順
+#### 実行手順
 
-#### 1. プロジェクトのビルド
+##### 1. データベースのセットアップ
+
+PostgreSQLで以下を実行：
+
+```sql
+CREATE DATABASE blogdb;
+CREATE USER postgres WITH PASSWORD 'postgres';
+GRANT ALL PRIVILEGES ON DATABASE blogdb TO postgres;
+```
+
+##### 2. プロジェクトのビルド
 
 ```powershell
 # Windowsの場合
@@ -138,7 +178,7 @@ public interface BlogPostDao {
 ./gradlew build
 ```
 
-#### 2. アプリケーションの起動
+##### 3. アプリケーションの起動
 
 ```powershell
 # Windowsの場合
@@ -148,7 +188,7 @@ public interface BlogPostDao {
 ./gradlew bootRun
 ```
 
-#### 3. ブラウザでアクセス
+##### 4. ブラウザでアクセス
 
 アプリケーション起動後、以下のURLにアクセスします：
 
@@ -162,6 +202,8 @@ API呼び出しには Basic認証が必要です（フロントエンドで自�
 
 - **ユーザー名**: `admin`
 - **パスワード**: `admin123`
+
+**⚠️ 本番環境では必ずパスワードを変更してください**
 
 ## 📝 使い方
 
