@@ -126,7 +126,21 @@ public class DynamicScreenController {
                 }
                 data.remove("tagIds"); // not a direct column
             }
-            int newId = screenService.createRecordReturnId(definition.getTableName(), data);
+            // formFields に存在するキーのみを許可（安全のため）
+            Map<String,Object> filtered = new HashMap<>();
+            if (definition.getFormFields() != null) {
+                for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                    String key = f.getKey();
+                    if (data.containsKey(key)) {
+                        filtered.put(key, data.get(key));
+                    }
+                }
+            }
+            // id や内部フィールドを念のため除外
+            filtered.remove("id");
+            filtered.entrySet().removeIf(e -> e.getKey().startsWith("_"));
+
+            int newId = screenService.createRecordReturnId(definition.getTableName(), filtered);
             if (categoryIds != null) {
                 screenService.updatePostCategories(newId, categoryIds);
             }
@@ -147,39 +161,80 @@ public class DynamicScreenController {
             @PathVariable int id,
             @RequestBody Map<String, Object> data) {
         try {
+            System.out.println("Update request for " + screenName + " id=" + id);
+            System.out.println("Data received: " + data);
+            
             ScreenDefinition definition = screenService.loadScreenDefinition(screenName);
             sanitizeRichText(definition, data);
+            
             // categoryIds (multiselect) handling for blog_post
             List<Integer> categoryIds = null;
             if ("blog_post".equals(definition.getTableName()) && data.containsKey("categoryIds")) {
                 Object raw = data.get("categoryIds");
+                System.out.println("categoryIds raw value: " + raw);
                 if (raw instanceof List<?>) {
                     try {
                         categoryIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
-                    } catch (Exception ignored) {}
+                        System.out.println("Parsed categoryIds: " + categoryIds);
+                    } catch (Exception e) {
+                        System.err.println("Failed to parse categoryIds: " + e.getMessage());
+                    }
                 }
                 data.remove("categoryIds");
             }
+            
+            // tagIds (multiselect) handling for blog_post
             List<Integer> tagIds = null;
             if ("blog_post".equals(definition.getTableName()) && data.containsKey("tagIds")) {
                 Object raw = data.get("tagIds");
+                System.out.println("tagIds raw value: " + raw);
                 if (raw instanceof List<?>) {
                     try {
                         tagIds = ((List<?>) raw).stream().map(v -> Integer.valueOf(v.toString())).toList();
-                    } catch (Exception ignored) {}
+                        System.out.println("Parsed tagIds: " + tagIds);
+                    } catch (Exception e) {
+                        System.err.println("Failed to parse tagIds: " + e.getMessage());
+                    }
                 }
                 data.remove("tagIds");
             }
-            screenService.updateRecord(definition.getTableName(), id, data);
-            if (categoryIds != null) {
-                screenService.updatePostCategories(id, categoryIds);
+            
+            System.out.println("Data after removing multiselect fields: " + data);
+            // 許可されたフィールドのみを更新
+            Map<String,Object> filtered = new HashMap<>();
+            if (definition.getFormFields() != null) {
+                for (ScreenDefinition.FormField f : definition.getFormFields()) {
+                    String key = f.getKey();
+                    if (data.containsKey(key)) {
+                        filtered.put(key, data.get(key));
+                    }
+                }
             }
-            if (tagIds != null) {
-                screenService.updatePostTags(id, tagIds);
+            // id や内部フィールドを念のため除外
+            filtered.remove("id");
+            filtered.entrySet().removeIf(e -> e.getKey().startsWith("_"));
+
+            // データベース更新
+            if (!filtered.isEmpty()) {
+                screenService.updateRecord(definition.getTableName(), id, filtered);
             }
+            
+            // カテゴリ紐付け更新
+            if ("blog_post".equals(definition.getTableName())) {
+                if (categoryIds != null) {
+                    screenService.updatePostCategories(id, categoryIds);
+                }
+                if (tagIds != null) {
+                    screenService.updatePostTags(id, tagIds);
+                }
+            }
+            
+            System.out.println("Update completed successfully");
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
+            e.printStackTrace();
+            System.err.println("Update error for " + screenName + " id=" + id + ": " + e.getMessage());
+            return ResponseEntity.status(500).build();
         }
     }
 

@@ -42,17 +42,7 @@
       
       <!-- Comment List -->
       <div class="comment-list" ng-if="comments.length > 0" style="margin-bottom: 30px;">
-        <div class="comment-item" ng-repeat="comment in comments" style="padding: 20px; margin-bottom: 20px; background: #fff; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
-          <div class="comment-header" style="margin-bottom: 12px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0;">
-            <span class="glyphicon glyphicon-user" style="color: #5bc0de; margin-right: 5px;"></span>
-            <strong class="comment-author" style="color: #333; margin-right: 15px; font-size: 1.05em;">{{ comment[dl.comments.authorField] }}</strong>
-            <span class="glyphicon glyphicon-time" style="color: #999; font-size: 0.85em; margin-right: 5px;"></span>
-            <span class="comment-date text-muted" style="font-size: 0.9em;">{{ comment[dl.comments.dateField] | date:'yyyy年MM月dd日 HH:mm' }}</span>
-          </div>
-          <div class="comment-body" style="color: #555; white-space: pre-wrap; line-height: 1.6; font-size: 0.95em;">
-            {{ comment[dl.comments.textField] }}
-          </div>
-        </div>
+        <div ng-repeat="comment in comments" ng-include="'views/comment-item.html'"></div>
       </div>
       
       <div class="no-comments text-muted" ng-if="comments.length === 0" style="padding: 20px; text-align: center;">
@@ -63,8 +53,16 @@
       <div class="comment-form" id="comment-form" style="margin-top: 30px; padding: 25px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
         <h4 style="margin-top: 0; margin-bottom: 20px;">
           <span class="glyphicon glyphicon-pencil" style="margin-right: 8px;"></span>
-          コメントを投稿する
+          <span ng-if="!replyingTo">コメントを投稿する</span>
+          <span ng-if="replyingTo">「{{ replyingTo[dl.comments.authorField] }}」さんへの返信</span>
         </h4>
+        
+        <!-- 返信キャンセルボタン -->
+        <div ng-if="replyingTo" style="margin-bottom: 15px;">
+          <button class="btn btn-sm btn-default" ng-click="cancelReply()">
+            <span class="glyphicon glyphicon-remove"></span> 返信をキャンセル
+          </button>
+        </div>
         
         <!-- Success Message -->
         <div ng-if="commentSuccess" class="alert alert-success" style="margin-bottom: 15px;">

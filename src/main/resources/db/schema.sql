@@ -16,10 +16,12 @@ CREATE TABLE IF NOT EXISTS blog_post (
 CREATE TABLE IF NOT EXISTS blog_comment (
     id SERIAL PRIMARY KEY,
     post_id INTEGER NOT NULL,
+    parent_id INTEGER,
     author VARCHAR(100),
     comment_text TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE
+    FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE,
+    FOREIGN KEY (parent_id) REFERENCES blog_comment(id) ON DELETE CASCADE
 );
 
 -- カテゴリテーブル

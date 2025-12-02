@@ -101,6 +101,12 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
     // 編集モード
     $scope.editRecord = function(record) {
         $scope.currentRecord = angular.copy(record);
+        // 内部フィールドは編集対象から除外
+        Object.keys($scope.currentRecord).forEach(function(k){
+            if (k.indexOf('_') === 0) {
+                delete $scope.currentRecord[k];
+            }
+        });
         $scope.isNewRecord = false;
         $scope.editMode = true;
         setTimeout(initRichEditors, 0);
@@ -218,7 +224,10 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
                 endpoint = '/api/tag/ensure';
             }
             
+            console.log('Adding new option:', newName, 'to endpoint:', endpoint);
+            
             $http.post(endpoint, {name: newName}).then(function(resp){
+                console.log('Successfully created:', resp.data);
                 if (!field._options) field._options = [];
                 field._options.push(resp.data);
                 if (!$scope.currentRecord[field.key]) {
@@ -228,7 +237,9 @@ blogApp.controller('DynamicScreenController', ['$scope', '$http', '$routeParams'
                 field._newName = '';
             }).catch(function(error) {
                 console.error('Failed to create new option:', error);
-                alert('追加に失敗しました: ' + (error.data?.message || error.statusText));
+                console.error('Error response:', error.data);
+                console.error('Error status:', error.status);
+                alert('追加に失敗しました: ' + (error.data?.message || error.statusText || 'サーバーエラー'));
             });
         };
 

@@ -52,11 +52,39 @@ blogApp.controller('PostController', ['$scope', '$http', '$routeParams', '$locat
         
         $http.get('/api/screen/comment/data', { params: params })
             .then(function(resp){
-                $scope.comments = resp.data.records || [];
+                var allComments = resp.data.records || [];
+                // 階層構造に変換
+                $scope.comments = buildCommentTree(allComments);
             })
             .catch(function(err){
                 console.error('Failed to load comments:', err);
             });
+    }
+    
+    // コメントを階層構造に変換
+    function buildCommentTree(comments) {
+        var commentMap = {};
+        var rootComments = [];
+        
+        // まずマップを作成
+        comments.forEach(function(comment) {
+            comment.replies = [];
+            commentMap[comment.id] = comment;
+        });
+        
+        // 親子関係を構築し、親の著者名を設定
+        comments.forEach(function(comment) {
+            if (comment.parent_id && commentMap[comment.parent_id]) {
+                // 親コメントの著者名を設定
+                var parentComment = commentMap[comment.parent_id];
+                comment._parentAuthor = parentComment[$scope.definition.detailLayout.comments.authorField];
+                commentMap[comment.parent_id].replies.push(comment);
+            } else {
+                rootComments.push(comment);
+            }
+        });
+        
+        return rootComments;
     }
     
     // コメントを投稿
@@ -76,6 +104,8 @@ blogApp.controller('PostController', ['$scope', '$http', '$routeParams', '$locat
             .then(function(){
                 // コメント欄をクリア
                 $scope.newComment = { author: $scope.username };
+                // 返信状態をリセット
+                $scope.replyingTo = null;
                 // コメント一覧を再読み込み
                 loadComments();
                 
@@ -105,6 +135,29 @@ blogApp.controller('PostController', ['$scope', '$http', '$routeParams', '$locat
             .finally(function(){
                 $scope.commentSubmitting = false;
             });
+    };
+    
+    // 返信開始
+    $scope.startReply = function(comment) {
+        $scope.replyingTo = comment;
+        $scope.newComment = { 
+            author: $scope.username,
+            parent_id: comment.id
+        };
+        
+        // 返信フォームにスクロール
+        setTimeout(function(){
+            var formElement = document.getElementById('comment-form');
+            if (formElement) {
+                formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }, 100);
+    };
+    
+    // 返信キャンセル
+    $scope.cancelReply = function() {
+        $scope.replyingTo = null;
+        $scope.newComment = { author: $scope.username };
     };
     
     // 記事編集画面へ移動（管理者のみ）
