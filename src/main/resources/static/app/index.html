@@ -31,8 +31,11 @@
                 <ul class="nav navbar-nav">
                     <li><a href="#!/">ホーム</a></li>
                     <li><a href="#!/screen/blog">記事管理</a></li>
+                    <li><a href="/contact.html"><span class="glyphicon glyphicon-envelope"></span> お問い合わせ</a></li>
                     <!-- 管理者のみコメント管理を表示 -->
                     <li ng-if="isAdmin"><a href="#!/screen/comment">コメント管理</a></li>
+                    <!-- 管理者のみお問い合わせ管理を表示 -->
+                    <li ng-if="isAdmin"><a href="#!/screen/contact">お問い合わせ管理</a></li>
                     <!-- 管理者のみカテゴリ管理を表示 -->
                     <li ng-if="isAdmin"><a href="#!/screen/category">カテゴリ管理</a></li>
                     <!-- 管理者のみホーム画面編集を表示 -->
@@ -43,6 +46,9 @@
                         <ul class="dropdown-menu">
                             <li><a href="javascript:void(0)" ng-click="editHomeConfig()">
                                 <span class="glyphicon glyphicon-home"></span> ホーム画面編集
+                            </a></li>
+                            <li><a href="#!/screen/contact">
+                                <span class="glyphicon glyphicon-envelope"></span> お問い合わせ管理
                             </a></li>
                         </ul>
                     </li>

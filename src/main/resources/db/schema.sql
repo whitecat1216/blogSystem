@@ -66,3 +66,17 @@ CREATE TABLE IF NOT EXISTS post_tag (
     FOREIGN KEY (post_id) REFERENCES blog_post(id) ON DELETE CASCADE,
     FOREIGN KEY (tag_id) REFERENCES blog_tag(id) ON DELETE CASCADE
 );
+
+-- お問い合わせテーブル
+CREATE TABLE IF NOT EXISTS contact_message (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(200) NOT NULL,
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'new',
+    reply TEXT,
+    replied_at TIMESTAMP,
+    replied_by VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

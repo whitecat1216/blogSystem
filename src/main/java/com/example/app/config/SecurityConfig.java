@@ -32,11 +32,13 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/tag/list").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/upload").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/user/register").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/contact/submit").permitAll()  // お問い合わせ送信は認証不要
+                    .requestMatchers("/api/contact/**").hasRole("ADMIN")  // お問い合わせ管理は管理者のみ
                     .requestMatchers(HttpMethod.POST, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.PUT, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.DELETE, "/api/screen/**").authenticated()
                     .requestMatchers(HttpMethod.POST, "/api/tag").hasRole("ADMIN")
-                    .requestMatchers("/login.html", "/register.html", "/app/**", "/scripts/**", "/views/**", "/styles/**", "/", "/static/**").permitAll()
+                    .requestMatchers("/login.html", "/register.html", "/contact.html", "/app/**", "/scripts/**", "/views/**", "/styles/**", "/", "/static/**").permitAll()
                     .anyRequest().permitAll()
                 )
             // Basic認証は開発用。常時admin状態を避けるためフォームログインのみ利用。
